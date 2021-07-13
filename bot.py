@@ -313,6 +313,7 @@ async def on_message(message):
         embed=discord.Embed(title="Changelog", color=0xff7b00)
         embed.set_author(name="Pencord", icon_url="https://cdn.discordapp.com/attachments/860495176488452097/863506691277717564/DB-Icons-Pen-Testing.png")
         embed.set_thumbnail(url="https://img.icons8.com/plasticine/100/000000/approve-and-update.png")
+        embed.add_field(name="V1.1.2", value="- Big update to whois! Added new whois elements data.", inline=True)
         embed.add_field(name="V1.0.1", value="- Added a changelog \n - Fixed formatting on cloudflare scan \n - Optimized the code", inline=True)
         embed.set_footer(text="Bot created by Markiemm#0001 https://markiemm.com")
         await message.channel.send(embed=embed)

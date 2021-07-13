@@ -146,7 +146,7 @@ async def on_message(message):
         while True:
             try:
                 embed=discord.Embed(title="How to use Pencord Discord bot", description="All the commands", color=0xffc800)
-                embed.set_author(name=config["bot_prefix"] + "Pencord", icon_url="https://cdn.discordapp.com/attachments/860495176488452097/863506691277717564/DB-Icons-Pen-Testing.png")
+                embed.set_author(name="Pencord", icon_url="https://cdn.discordapp.com/attachments/860495176488452097/863506691277717564/DB-Icons-Pen-Testing.png")
                 embed.add_field(name=config["bot_prefix"] + "help", value="Display all of the commands.", inline=True)
                 embed.add_field(name=config["bot_prefix"] + "whois", value="Display basic whois data for a domain or IP.", inline=True)
                 embed.add_field(name=config["bot_prefix"] + "fullwhois", value="Display full whois data with everything displayed.", inline=True)

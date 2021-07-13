@@ -314,4 +314,4 @@ async def on_message(message):
 
     
 # Run the bot with the token
-bot.run(config["Test_Bot_token"])
+bot.run(config["Main_Bot_token"])

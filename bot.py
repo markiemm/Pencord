@@ -313,43 +313,5 @@ async def on_message(message):
         await message.channel.send(embed=embed)
 
     
-
-
-
-    # if message.content.startswith("?breachemail"):
-    #     emailbreach_input = message.content[13:]
-    #     try:
-    #         targets = []
-    #         breachcomp_path = "/home/markiemm/"
-    #         query_bin = os.path.join(breachcomp_path, "query.sh")
-    #         st = os.stat(query_bin)
-    #         os.chmod(query_bin, st.st_mode | stat.S_IEXEC)
-    #         for t in targets:
-    #             c.info_news(f"Looking up {t.target} in BreachCompilation")
-    #             procfd = subprocess.run([query_bin, t.target], stdout=subprocess.PIPE)
-    #             try:
-    #                 output = procfd.stdout.decode("cp437")
-    #             except Exception as e:
-    #                 c.bad_news(f"Could not decode bytes for {t.target} results")
-    #                 output = procfd.stdout
-    #                 # print(output[:85], "[...]")
-    #                 print(output)
-    #                 continue
-    #             if len(output) != 0:
-    #                 split_output = output.split("\n")
-    #                 for line in split_output:
-    #                     if ":" in line:
-    #                         t.pwned += 1
-    #                         t.data.append(("BC_PASS", re.split("[;:]",line)[-1]))
-    #                         c.good_news(
-    #                             f"Found BreachedCompilation entry {line}"
-    #                         )
-    #         print(targets)                
-    #         return targets
-    #     except Exception as e:
-    #         c.bad_news("Breach compilation")
-    #         print(e)
-    #         return targets
-
 # Run the bot with the token
-bot.run(config["token"])
+bot.run(config["Main_Bot_token"])

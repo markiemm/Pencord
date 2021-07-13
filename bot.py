@@ -66,32 +66,37 @@ async def on_message(message):
         headers = {
             'apikey': config["Whois_API"],
             }
-        raw_whois_api = requests.get("https://api.promptapi.com/whois/query?domain=" + whois_domain, headers=headers)
+        raw_whois_api = requests.get("http://api.ipstack.com/" + whois_domain + "?access_key=" + config["busters_api"], headers=headers)
+        embed=discord.Embed(title="Pencord Whois Data for " + whois_domain, description="Here is the basic Whois data for " + whois_domain, color=0xc7ac00)
+        embed.set_author(name="Pencord", icon_url="https://media.discordapp.net/attachments/860495176488452097/863506691277717564/DB-Icons-Pen-Testing.png")
+        embed.set_thumbnail(url="https://cdn.pixabay.com/photo/2017/05/24/07/05/searching-2339723_1280.png")
+        embed.add_field(name="Domain host", value="Below is the address of the host. ", inline=False)
+        embed.add_field(name="type", value=raw_whois_api.json()["type"], inline=True)
+        embed.add_field(name="Continent code", value=raw_whois_api.json()["continent_code"], inline=True)
+        embed.add_field(name="Continent name", value=raw_whois_api.json()["continent_name"], inline=True)
+        embed.add_field(name="Country code", value=raw_whois_api.json()["country_code"], inline=True)
+        embed.add_field(name="Country name", value=raw_whois_api.json()["country_name"], inline=True)
+        embed.add_field(name="Region code", value=raw_whois_api.json()["region_code"], inline=True)
+        embed.add_field(name="Region name", value=raw_whois_api.json()["region_name"], inline=True)
+        embed.add_field(name="City", value=raw_whois_api.json()["city"], inline=True)
+        embed.add_field(name="Zip Code", value=raw_whois_api.json()["zip"], inline=True)
+        embed.add_field(name="latitude", value=raw_whois_api.json()["latitude"], inline=True)
+        embed.add_field(name="longitude", value=raw_whois_api.json()["longitude"], inline=True)
+        embed.add_field(name="Geoname id", value=raw_whois_api.json()["location"]["geoname_id"], inline=False)
+        embed.add_field(name="Capital", value=raw_whois_api.json()["location"]["capital"], inline=False)
+        embed.add_field(name="Country flag", value=raw_whois_api.json()["location"]["country_flag_emoji"], inline=False)
+        embed.add_field(name="Country flag emoji_unicode", value=str(raw_whois_api.json()["location"]["country_flag_emoji_unicode"]), inline=False)
+        embed.add_field(name="Calling code", value=str(raw_whois_api.json()["location"]["calling_code"]), inline=False)
+        embed.add_field(name="Is eu", value=str(raw_whois_api.json()["location"]["is_eu"]), inline=False)
+        embed.set_footer(text="Bot created by Markiemm#0001 https://markiemm.com")
+        await message.channel.send(embed=embed)
+        early_access_message=discord.Embed(title="A notice from the developer", description="This bot is currently in its early stages of development with only a very few commands available at this time. \n \n This bot may go offline at times while the developer Markiemm is still working on it and adding new features as well as making it stable and reliable. This is not the final product. ", color=0xff7024)
+        early_access_message.set_author(name="Pencord", icon_url="https://cdn.discordapp.com/attachments/860495176488452097/863506691277717564/DB-Icons-Pen-Testing.png")
+        early_access_message.set_thumbnail(url="https://www.pngkey.com/png/full/881-8812373_open-warning-icon-png.png")
+        await message.channel.send(embed=early_access_message)
         while True:
             try:
-                embed=discord.Embed(title="Pencord Whois Data for " + whois_domain, description="Here is the basic Whois data for " + whois_domain, color=0xc7ac00)
-                embed.set_author(name="Pencord", icon_url="https://media.discordapp.net/attachments/860495176488452097/863506691277717564/DB-Icons-Pen-Testing.png")
-                embed.set_thumbnail(url="https://cdn.pixabay.com/photo/2017/05/24/07/05/searching-2339723_1280.png")
-                embed.add_field(name="Domain host", value="Below is the address of the domain host. ", inline=False)
-                embed.add_field(name="Address ", value=raw_whois_api.json()["result"]["address"], inline=True)
-                embed.add_field(name="Country", value=raw_whois_api.json()["result"]["country"], inline=True)
-                embed.add_field(name="City", value=raw_whois_api.json()["result"]["city"], inline=True)
-                embed.add_field(name="State", value=raw_whois_api.json()["result"]["state"], inline=True)
-                embed.add_field(name="Zipcode", value=raw_whois_api.json()["result"]["zipcode"], inline=True)
-                embed.add_field(name="Domain status", value="Below is the domain status.", inline=False)
-                embed.add_field(name="Domain name", value=raw_whois_api.json()["result"]["domain_name"], inline=True)
-                embed.add_field(name="Name", value=raw_whois_api.json()["result"]["name"], inline=True)
-                embed.add_field(name="Dnssec", value=raw_whois_api.json()["result"]["dnssec"], inline=True)
-                embed.add_field(name="Creation date", value=raw_whois_api.json()["result"]["creation_date"], inline=True)
-                embed.add_field(name="Expiration date", value=raw_whois_api.json()["result"]["expiration_date"], inline=True)
-                embed.add_field(name="Updated date", value=raw_whois_api.json()["result"]["updated_date"], inline=True)
-                embed.add_field(name="Emails", value=raw_whois_api.json()["result"]["emails"], inline=True)
-                embed.set_footer(text="Bot created by Markiemm#0001 https://markiemm.com")
-                await message.channel.send(embed=embed)
-                early_access_message=discord.Embed(title="A notice from the developer", description="This bot is currently in its early stages of development with only a very few commands available at this time. \n \n This bot may go offline at times while the developer Markiemm is still working on it and adding new features as well as making it stable and reliable. This is not the final product. ", color=0xff7024)
-                early_access_message.set_author(name="Pencord", icon_url="https://cdn.discordapp.com/attachments/860495176488452097/863506691277717564/DB-Icons-Pen-Testing.png")
-                early_access_message.set_thumbnail(url="https://www.pngkey.com/png/full/881-8812373_open-warning-icon-png.png")
-                await message.channel.send(embed=early_access_message)
+                
                 break
             except:
                 formatting_string_whois = str(raw_whois_api.json())
@@ -114,7 +119,7 @@ async def on_message(message):
         headers = {
             'apikey': config["Whois_API"],
             }
-        raw_fullwhois_api = requests.get("https://api.promptapi.com/whois/query?domain=" + fullwhois_domain, headers=headers)
+        raw_fullwhois_api = requests.get("http://api.ipstack.com/" + fullwhois_domain + "?access_key=" + config["busters_api"], headers=headers)
         while True:
             try:
                 formatting_string_fullwhois = str(raw_fullwhois_api.json())
@@ -314,4 +319,4 @@ async def on_message(message):
 
     
 # Run the bot with the token
-bot.run(config["Main_Bot_token"])
+bot.run(config["Test_Bot_token"])

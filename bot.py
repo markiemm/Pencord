@@ -8,7 +8,6 @@ from types import new_class
 import requests
 import subprocess 
 import re
-# from .colors import colors as c
 import stat
 from datetime import timedelta
 from string import printable
@@ -242,10 +241,10 @@ async def on_message(message):
         await message.channel.send(embed=early_access_message)
 
     if message.content.startswith(config["bot_prefix"] + "webping"):
-        responce = message.content[9:]
-        await message.channel.send("Pinging " + responce + "...")
-        output_ping = os.popen("ping -c 3 " + responce)
-        embed=discord.Embed(title="pinging " + responce, description=str(output_ping.read()), color=0xf40101)
+        responce = str(message.content[9:])
+        await message.channel.send("Pinging " + responce.split(' ', 1)[0] + "...")
+        output_ping = os.popen("ping -c 3 " + responce.split(' ', 1)[0])
+        embed=discord.Embed(title="pinging " + responce.split(' ', 1)[0], description=str(output_ping.read()), color=0xf40101)
         embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
         embed.set_footer(text="Bot created by Markiemm#0001 https://markiemm.com")
         await message.channel.send(embed=embed)
@@ -283,12 +282,12 @@ async def on_message(message):
                 break
     
     if message.content.startswith(config["bot_prefix"] + "cloudflare"):
-        cloudflare_responce = message.content[12:]
+        cloudflare_responce = str(message.content[12:]).split(' ', 1)[0]
         await message.channel.send("Please wait, i'm getting real IP address of " + cloudflare_responce)
         cloudflare_output = os.popen("python3 cloudfail.py -t " + cloudflare_responce)
         while True:
             try:
-                embed=discord.Embed(title="Real IP for " + cloudflare_responce, description=str(cloudflare_output.read()[317:]), color=0xffc800)
+                embed=discord.Embed(title="Real IP for " + cloudflare_responce, description=cloudflare_output.read()[317:], color=0xffc800)
                 embed.set_thumbnail(url="https://img.icons8.com/color/100/000000/cloudflare.png")
                 embed.set_footer(text="Bot created by Markiemm#0001 https://markiemm.com")
                 await message.channel.send(embed=embed)
@@ -313,8 +312,9 @@ async def on_message(message):
         embed=discord.Embed(title="Changelog", color=0xff7b00)
         embed.set_author(name="Pencord", icon_url="https://cdn.discordapp.com/attachments/860495176488452097/863506691277717564/DB-Icons-Pen-Testing.png")
         embed.set_thumbnail(url="https://img.icons8.com/plasticine/100/000000/approve-and-update.png")
-        embed.add_field(name="V1.1.2", value="- Big update to whois! Added new whois elements data.", inline=True)
-        embed.add_field(name="V1.0.1", value="- Added a changelog \n - Fixed formatting on cloudflare scan \n - Optimized the code", inline=True)
+        embed.add_field(name="V1.1.2", value="- Fixed an vulnerability that allows users to add extra arguments to commands. Thanks to <@180006576428417024> for reporting this.", inline=False)
+        embed.add_field(name="V1.1.1", value="- Big update to whois! Added new whois elements data.", inline=False)
+        embed.add_field(name="V1.0.1", value="- Added a changelog \n - Fixed formatting on cloudflare scan. \n - Optimized the code", inline=False)
         embed.set_footer(text="Bot created by Markiemm#0001 https://markiemm.com")
         await message.channel.send(embed=embed)
 

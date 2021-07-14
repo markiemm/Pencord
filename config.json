@@ -5,6 +5,10 @@
   "application_id": "862768351104860206",
   "Whois_API": "aGWoRD944aGQtOC5qycXlllalonv8l6f",
   "busters_api": "99da9523cb284411fcb25aad4700a6cd",
+  "ping_error_message": [
+    "Name or service not known",
+    "None"
+  ],
   "owners": [
     123456789,
     987654321

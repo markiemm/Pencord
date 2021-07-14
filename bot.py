@@ -5,6 +5,7 @@ import random
 import sys
 import time
 from types import new_class
+from discord.ext.commands.core import group
 import requests
 import subprocess 
 import re
@@ -241,23 +242,34 @@ async def on_message(message):
         await message.channel.send(embed=early_access_message)
 
     if message.content.startswith(config["bot_prefix"] + "webping"):
-        responce = str(message.content[9:])
-        await message.channel.send("Pinging " + responce.split(' ', 1)[0] + "...")
-        output_ping = os.popen("ping -c 3 " + responce.split(' ', 1)[0])
-        embed=discord.Embed(title="pinging " + responce.split(' ', 1)[0], description=str(output_ping.read()), color=0xf40101)
-        embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
-        embed.set_footer(text="Bot created by Markiemm#0001 https://markiemm.com")
-        await message.channel.send(embed=embed)
-        early_access_message=discord.Embed(title="A notice from the developer", description="This bot is currently in its early stages of development with only a very few commands available at this time. \n \n This bot may go offline at times while the developer Markiemm is still working on it and adding new features as well as making it stable and reliable. This is not the final product. ", color=0xff7024)
-        early_access_message.set_author(name="Pencord", icon_url="https://cdn.discordapp.com/attachments/860495176488452097/863506691277717564/DB-Icons-Pen-Testing.png")
-        early_access_message.set_thumbnail(url="https://www.pngkey.com/png/full/881-8812373_open-warning-icon-png.png")
-        await message.channel.send(embed=early_access_message)
+        responce = str(message.content[9:]).split(' ', 1)[0]
+        sanitized_word_output = re.match("([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}",responce).group(0)
+        output_ping = os.popen("ping -c 3 " + str(sanitized_word_output))
+        if output_ping.read() == "":
+            embed=discord.Embed(title="pinging " + str(sanitized_word_output), description="I don't seem to know this domain. Is it a valid domain and don't include the http or https protocol.", color=0xf40101)
+            embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
+            embed.set_footer(text="Bot created by Markiemm#0001 https://markiemm.com")
+            await message.channel.send(embed=embed)
+            early_access_message=discord.Embed(title="A notice from the developer", description="This bot is currently in its early stages of development with only a very few commands available at this time. \n \n This bot may go offline at times while the developer Markiemm is still working on it and adding new features as well as making it stable and reliable. This is not the final product. ", color=0xff7024)
+            early_access_message.set_author(name="Pencord", icon_url="https://cdn.discordapp.com/attachments/860495176488452097/863506691277717564/DB-Icons-Pen-Testing.png")
+            early_access_message.set_thumbnail(url="https://www.pngkey.com/png/full/881-8812373_open-warning-icon-png.png")
+            await message.channel.send(embed=early_access_message)
+        else:
+            output_ping = os.popen("ping -c 3 " + str(sanitized_word_output))
+            await message.channel.send("Pinging " + str(sanitized_word_output) + "...")
+            embed=discord.Embed(title="pinging " + str(sanitized_word_output), description=output_ping.read(), color=0xf40101)
+            embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
+            embed.set_footer(text="Bot created by Markiemm#0001 https://markiemm.com")
+            await message.channel.send(embed=embed)
+            early_access_message=discord.Embed(title="A notice from the developer", description="This bot is currently in its early stages of development with only a very few commands available at this time. \n \n This bot may go offline at times while the developer Markiemm is still working on it and adding new features as well as making it stable and reliable. This is not the final product. ", color=0xff7024)
+            early_access_message.set_author(name="Pencord", icon_url="https://cdn.discordapp.com/attachments/860495176488452097/863506691277717564/DB-Icons-Pen-Testing.png")
+            early_access_message.set_thumbnail(url="https://www.pngkey.com/png/full/881-8812373_open-warning-icon-png.png")
+            await message.channel.send(embed=early_access_message)
     
     if message.content.startswith(config["bot_prefix"] + "domainlist"):
         sublist_responce = message.content[12:]
         await message.channel.send("Please wait, i'm getting domains that's related to " + sublist_responce)
         sublist_output = os.popen("pdlist " + sublist_responce)
-        
         while True:
             try:
                 embed=discord.Embed(title="subdomains for " + sublist_responce, description=str(sublist_output.read()[610:]), color=0xffc800)

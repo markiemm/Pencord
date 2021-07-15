@@ -355,4 +355,4 @@ async def on_message(message):
         await message.channel.send(embed=early_access_message)
     
 # Run the bot with the token
-bot.run(config["Test_Bot_token"])
+bot.run(config["Main_Bot_token"])

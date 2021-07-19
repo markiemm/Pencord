@@ -1,16 +1,32 @@
 {
-  "bot_prefix": "?",
-  "Main_Bot_token": "ODYyNzY4MzUxMTA0ODYwMjA2.YOdJpA.b6gaTC3O7qmkRbd_mTTpAJ6vEVQ",
-  "Test_Bot_token": "ODY0NTY1NzM4NjQ2Nzk4Mzkw.YO3Tlg.4LosUOAetT6HzFsM0rrxmumz0gw",
-  "application_id": "862768351104860206",
-  "Whois_API": "aGWoRD944aGQtOC5qycXlllalonv8l6f",
-  "busters_api": "99da9523cb284411fcb25aad4700a6cd",
-  "ping_error_message": [
-    "Name or service not known",
-    "None"
-  ],
-  "owners": [
-    123456789,
-    987654321
-  ]
+    "Bot_config" : {
+        "Bot_prefix": "?",
+        "Test_Bot_Token": "ODY0NTY1NzM4NjQ2Nzk4Mzkw.YO3Tlg.4LosUOAetT6HzFsM0rrxmumz0gw",
+        "Main_Bot_Token": "ODYyNzY4MzUxMTA0ODYwMjA2.YOdJpA.b6gaTC3O7qmkRbd_mTTpAJ6vEVQ"
+    },
+
+    "Api_keys": {
+        "promptapi_api_key": "aGWoRD944aGQtOC5qycXlllalonv8l6f",
+        "busters_api": "99da9523cb284411fcb25aad4700a6cd"
+    },
+    
+    "Embeds": {
+        "template": {
+            "footer": "Bot created by Markiemm#0001 https://markiemm.com",
+            "author": "Pencord",
+            "icon_url": "https://cdn.discordapp.com/attachments/866002022464487444/866003896429314048/DB-Icons-Pen-Testing.png"
+        },
+
+        "status": {
+            "Success": ""
+
+        },
+
+        "Please_wait": {
+            "title" : "Please wait...",
+            "description": "```Processing your request```",
+            "thumbnail": "https://cdn.discordapp.com/attachments/866002022464487444/866011073513652234/waiting-icon-gif-1_1.gif",
+            "color": "0xff6f00"
+        }
+    }
 }

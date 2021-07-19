@@ -181,7 +181,7 @@ async def domainlist (message, sublist_responce):
     sublist_output = os.popen("pdlist " + sublist_responce)
 
     try:
-        embed=discord.Embed(title="subdomains for " + sublist_responce, description=sublist_output.read()[565:], color=0x83ff61)
+        embed=discord.Embed(title="subdomains for " + sublist_responce, description=sublist_output.read()[564:], color=0x83ff61)
         embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
         embed.set_thumbnail(url="https://image.flaticon.com/icons/png/512/1490/1490342.png")
         embed.set_footer(text=config["Embeds"]["template"]["footer"])

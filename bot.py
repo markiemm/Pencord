@@ -59,7 +59,8 @@ async def help (message):
     embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "cloudflare", value="Attempt to get the real IP that's behind the cloudflare network.", inline=True)
     embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "webping", value="Ping a website", inline=True)
     embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "ping", value="Responds back the time it takes to recieve and send a message.", inline=True)
-    embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "changelog", value="View the changelog of Pencord", inline=True)
+    embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "dns", value="Displays the DNS records and its IP's **Note: You should not rely on this feature and conduct your own test as this feature may not display all DNS records**", inline=True)
+    embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "changelog", value="View the changelog of Pencord", inline=False)
     embed.set_footer(text=config["Embeds"]["template"]["footer"])
     await message.channel.send(embed=embed)
 
@@ -119,9 +120,10 @@ async def whois(message, whois_domain):
 @bot.command()
 async def changelog (message):
     #send changelog embed
-    embed=discord.Embed(title="Changelog (Bot version: V2.0.0)", color=0x0088ff)
+    embed=discord.Embed(title="Changelog (Bot version: V2.1.0)", color=0x0088ff)
     embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
     embed.set_thumbnail(url="https://img.icons8.com/plasticine/100/000000/approve-and-update.png")
+    embed.add_field(name="V2.1.0", value="- Added DNS lookup", inline=False)
     embed.add_field(name="V2.0.0", value="- Bot backend has been rewritten for stability, reliability, security and making it much more faster. Thanks to <@608636292301062184> for the help. \n \n - added **Please Wait** messages when performing a command.", inline=False)
     embed.add_field(name="V1.2.2", value="- Added more whois information.\n \n" + "- Whois is more user friendly to read.", inline=False)
     embed.add_field(name="V1.1.2", value="- Fixed an vulnerability that allows users to add extra arguments to commands. Thanks to <@180006576428417024> for reporting this.", inline=False)
@@ -251,7 +253,7 @@ async def fullwhois (message, fullwhois_domain):
     await bot.http.delete_message(channel_id_fullwhois, message_id_fullwhois)
 
 @bot.command()
-async def webping (message, responce):
+async def webping (message, webping_responce):
     #send "please wait message"
     please_wait_message = await message.channel.send(embed=please_wait)
 
@@ -261,12 +263,12 @@ async def webping (message, responce):
     #get channel id
     channel_id_webping = message.channel.id
 
-    sanitized_word_output = re.match("([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}",responce).group(0)
+    sanitized_word_output = re.match("([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}",webping_responce).group(0)
     
     output_ping = os.popen("ping -c 3 " + str(sanitized_word_output))
     
     if output_ping.read() == "":
-        embed=discord.Embed(title="pinging " + str(sanitized_word_output), description="I don't seem to know this domain. Is it a valid domain and don't include the http or https protocol.", color=0xf40101)
+        embed=discord.Embed(title="ping for " + str(sanitized_word_output), description="I don't seem to know this domain. Is it a valid domain and don't include the http or https protocol.", color=0xf40101)
         embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
         embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
         embed.set_footer(text=config["Embeds"]["template"]["footer"])
@@ -274,7 +276,7 @@ async def webping (message, responce):
     else:
         output_ping = os.popen("ping -c 3 " + str(sanitized_word_output))
         
-        embed=discord.Embed(title="pinging " + str(sanitized_word_output), description=output_ping.read(), color=0xf40101)
+        embed=discord.Embed(title="ping for " + str(sanitized_word_output), description=output_ping.read(), color=0xf40101)
         embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
         embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
         embed.set_footer(text=config["Embeds"]["template"]["footer"])
@@ -282,5 +284,35 @@ async def webping (message, responce):
 
     await bot.http.delete_message(channel_id_webping, message_id_webping)
 
+@bot.command()
+async def dns (message, dns_input):
 
-bot.run(config["Bot_config"]["Main_Bot_Token"])
+    #send "please wait message"
+    please_wait_message = await message.channel.send(embed=please_wait)
+
+    #get message id
+    message_id_webping = please_wait_message.id
+
+    #get channel id
+    channel_id_webping = message.channel.id
+
+    sanitized_word_output_dnsenum = re.match("([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}",dns_input).group(0)
+    
+    output_dns = os.popen("dnsenum " + str(sanitized_word_output_dnsenum))
+
+    remove_odd_shit = str(output_dns.read().replace("[1;34m", "").replace("[0m", "")).replace("[1;31m", "")[53:]
+
+    embed=discord.Embed(title="Grabbing DNS records for " + dns_input, description=remove_odd_shit + "\n**Note: You should not rely on this feature and conduct your own test as this feature may not display all DNS records**", color=0xf40101)
+    embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+    embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
+    embed.set_footer(text=config["Embeds"]["template"]["footer"])
+    await message.channel.send(embed=embed)
+
+
+
+
+
+
+
+
+bot.run(config["Bot_config"]["Test_Bot_Token"])

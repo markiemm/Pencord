@@ -291,22 +291,24 @@ async def dns (message, dns_input):
     please_wait_message = await message.channel.send(embed=please_wait)
 
     #get message id
-    message_id_webping = please_wait_message.id
+    message_id_dnslookup = please_wait_message.id
 
     #get channel id
-    channel_id_webping = message.channel.id
+    channel_id_dnslookup = message.channel.id
 
     sanitized_word_output_dnsenum = re.match("([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}",dns_input).group(0)
     
     output_dns = os.popen("dnsenum " + str(sanitized_word_output_dnsenum))
 
-    remove_odd_shit = str(output_dns.read().replace("[1;34m", "").replace("[0m", "")).replace("[1;31m", "")[53:]
+    remove_odd_shit = str(output_dns.read().replace("[1;34m", "").replace("[0m", "")).replace("[1;31m", "")[50:]
 
     embed=discord.Embed(title="Grabbing DNS records for " + dns_input, description=remove_odd_shit + "\n**Note: You should not rely on this feature and conduct your own test as this feature may not display all DNS records**", color=0xf40101)
     embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
     embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
     embed.set_footer(text=config["Embeds"]["template"]["footer"])
     await message.channel.send(embed=embed)
+
+    await bot.http.delete_message(channel_id_dnslookup, message_id_dnslookup)
 
 
 

@@ -56,7 +56,6 @@ async def help (message):
     embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "fullwhois", value="Display full whois data with everything displayed.", inline=True)
     embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "bincheck", value="Display the status of a Bank Identification Number.", inline=True)
     embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "domainlist", value="Display related domains about the target domain.", inline=True)
-    embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "cloudflare", value="Attempt to get the real IP that's behind the cloudflare network.", inline=True)
     embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "webping", value="Ping a website", inline=True)
     embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "ping", value="Responds back the time it takes to recieve and send a message.", inline=True)
     embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "dns", value="Displays the DNS records and its IP's **Note: You should not rely on this feature and conduct your own test as this feature may not display all DNS records**", inline=True)
@@ -198,26 +197,6 @@ async def domainlist (message, sublist_responce):
 
     await bot.http.delete_message(channel_id_domainlist, message_id_domainlist)
 
-@bot.command()
-async def cloudflare (message, cloudflare_responce):
-    #send "please wait message"
-    please_wait_message = await message.channel.send(embed=please_wait)
-
-    #get message id
-    message_id_cloudflare = please_wait_message.id
-
-    #get channel id
-    channel_id_cloudflare = message.channel.id
-
-    cloudflare_output = os.popen("python3 cloudfail.py -t " + cloudflare_responce)
-
-    embed=discord.Embed(title="Real IP for " + cloudflare_responce, description=cloudflare_output.read()[317:], color=0x83ff61)
-    embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-    embed.set_thumbnail(url="https://img.icons8.com/color/100/000000/cloudflare.png")
-    embed.set_footer(text=config["Embeds"]["template"]["footer"])
-    await message.channel.send(embed=embed)
-
-    await bot.http.delete_message(channel_id_cloudflare, message_id_cloudflare)
 
 @bot.command()
 async def ping (message):

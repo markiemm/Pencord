@@ -308,9 +308,6 @@ try:
     # Initialize CloudFail
     init(args.target)
 
-    # Scan DNSdumpster.com
-    dnsdumpster(args.target)
-
     # Scan Crimeflare database
     crimeflare(args.target)
 

@@ -1,3 +1,4 @@
+from inspect import EndOfBlock
 from attr import astuple
 import discord
 import json
@@ -9,6 +10,7 @@ from discord import channel
 import requests
 from discord.ext import commands
 import re
+import ipaddress
 
 #load config
 if not os.path.isfile("config.json"):
@@ -73,45 +75,56 @@ async def whois(message, whois_domain):
 
     #get the channel ID
     channel_id_whois = message.channel.id
+    
+    sanitized_word_output_whois = re.search('([\w\-]+\.\w{2,})', str(whois_domain)).group()
 
-    #make a request to promptapi
-    api_whois_promptapi_out = requests.get("https://api.promptapi.com/whois/query?domain=" + whois_domain, headers=headers)
-    api_whois_ipstack_out = requests.get("http://api.ipstack.com/" + whois_domain + "?access_key=" + config["Api_keys"]["busters_api"], headers=headers)
+    if re.match("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$", whois_domain):
+        raw_fullwhois_api = requests.get("http://api.ipstack.com/" + whois_domain + "?access_key=" + config["Api_keys"]["busters_api"], headers=headers)
+        formatting_replace_whois = str(raw_fullwhois_api.json()).replace(",", "\n").replace("'", "").replace("[{", "").replace("{", "").replace("}}", "")
+        embed=discord.Embed(title="Basic Whois search is unavailable for IP's, here is the full whois for " + whois_domain, description=formatting_replace_whois[12:], color=0x83ff61)
+        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_thumbnail(url="https://cdn.pixabay.com/photo/2017/05/24/07/05/searching-2339723_1280.png")
+        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        await message.channel.send(embed=embed)
+    else:
+        #make a request to promptapi
+        api_whois_promptapi_out = requests.get("https://api.promptapi.com/whois/query?domain=" + sanitized_word_output_whois, headers=headers)
+        api_whois_ipstack_out = requests.get("http://api.ipstack.com/" + whois_domain + "?access_key=" + config["Api_keys"]["busters_api"], headers=headers)
 
-    embed=discord.Embed(title="Pencord Whois Data for " + whois_domain, description="Here is the basic Whois data for " + whois_domain, color=0x83ff61)
-    embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-    embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/866002022464487444/866410785936506880/1200px-VisualEditor_-_Icon_-_Open-book-2.svg.png")
-    embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        embed=discord.Embed(title="Pencord Whois Data for " + sanitized_word_output_whois, description="Here is the basic Whois data for " + sanitized_word_output_whois, color=0x83ff61)
+        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/866002022464487444/866410785936506880/1200px-VisualEditor_-_Icon_-_Open-book-2.svg.png")
+        embed.set_footer(text=config["Embeds"]["template"]["footer"])
 
-    embed.add_field(name="----------------------Location----------------------", value="-----------------------------------------------------", inline=False)
-    embed.add_field(name="Country name", value=api_whois_ipstack_out.json()["country_name"], inline=True)
-    embed.add_field(name="Continent name", value=api_whois_ipstack_out.json()["continent_name"], inline=True)
-    embed.add_field(name="Region name", value=api_whois_ipstack_out.json()["region_name"], inline=True)
-    embed.add_field(name="City", value=api_whois_ipstack_out.json()["city"], inline=True)
-    embed.add_field(name="Zip Code", value=api_whois_ipstack_out.json()["zip"], inline=True)
-    embed.add_field(name="Capital", value=api_whois_ipstack_out.json()["location"]["capital"], inline=True)
+        embed.add_field(name="----------------------Location----------------------", value="-----------------------------------------------------", inline=False)
+        embed.add_field(name="Country name", value=api_whois_ipstack_out.json()["country_name"], inline=True)
+        embed.add_field(name="Continent name", value=api_whois_ipstack_out.json()["continent_name"], inline=True)
+        embed.add_field(name="Region name", value=api_whois_ipstack_out.json()["region_name"], inline=True)
+        embed.add_field(name="City", value=api_whois_ipstack_out.json()["city"], inline=True)
+        embed.add_field(name="Zip Code", value=api_whois_ipstack_out.json()["zip"], inline=True)
+        embed.add_field(name="Capital", value=api_whois_ipstack_out.json()["location"]["capital"], inline=True)
 
-    embed.add_field(name="latitude", value=api_whois_ipstack_out.json()["latitude"], inline=True)
-    embed.add_field(name="longitude", value=api_whois_ipstack_out.json()["longitude"], inline=True)
+        embed.add_field(name="latitude", value=api_whois_ipstack_out.json()["latitude"], inline=True)
+        embed.add_field(name="longitude", value=api_whois_ipstack_out.json()["longitude"], inline=True)
 
-    embed.add_field(name="----------------------Codes----------------------", value="-------------------------------------------------", inline=False)
-    embed.add_field(name="Country code", value=api_whois_ipstack_out.json()["country_code"], inline=True)
-    embed.add_field(name="Continent code", value=api_whois_ipstack_out.json()["continent_code"], inline=True)
-    embed.add_field(name="Region code", value=api_whois_ipstack_out.json()["region_code"], inline=True)
-    embed.add_field(name="Geoname id", value=api_whois_ipstack_out.json()["location"]["geoname_id"], inline=True)
-    embed.add_field(name="Calling code", value=str(api_whois_ipstack_out.json()["location"]["calling_code"]), inline=True)
+        embed.add_field(name="----------------------Codes----------------------", value="-------------------------------------------------", inline=False)
+        embed.add_field(name="Country code", value=api_whois_ipstack_out.json()["country_code"], inline=True)
+        embed.add_field(name="Continent code", value=api_whois_ipstack_out.json()["continent_code"], inline=True)
+        embed.add_field(name="Region code", value=api_whois_ipstack_out.json()["region_code"], inline=True)
+        embed.add_field(name="Geoname id", value=api_whois_ipstack_out.json()["location"]["geoname_id"], inline=True)
+        embed.add_field(name="Calling code", value=str(api_whois_ipstack_out.json()["location"]["calling_code"]), inline=True)
 
-    embed.add_field(name="----------------------Status----------------------", value="--------------------------------------------------", inline=False)
-    embed.add_field(name="type", value=api_whois_ipstack_out.json()["type"], inline=True)
-    embed.add_field(name="Is eu", value=str(api_whois_ipstack_out.json()["location"]["is_eu"]), inline=True)
+        embed.add_field(name="----------------------Status----------------------", value="--------------------------------------------------", inline=False)
+        embed.add_field(name="type", value=api_whois_ipstack_out.json()["type"], inline=True)
+        embed.add_field(name="Is eu", value=str(api_whois_ipstack_out.json()["location"]["is_eu"]), inline=True)
 
-    embed.add_field(name="----------------------Provider----------------------", value="--------------------------------------------------", inline=False)
-    embed.add_field(name="Domain Provider", value=str(api_whois_promptapi_out.json()["result"]["registrar"]), inline=True)
-    embed.add_field(name="Updated Date", value=str(api_whois_promptapi_out.json()["result"]["updated_date"]), inline=True)
-    embed.add_field(name="Creation Date", value=str(api_whois_promptapi_out.json()["result"]["creation_date"]), inline=True)
-    embed.add_field(name="Expiration date", value=str(api_whois_promptapi_out.json()["result"]["expiration_date"]), inline=True)
-    embed.add_field(name="Emails", value=str(api_whois_promptapi_out.json()["result"]["emails"]), inline=True)
-    await message.channel.send(embed=embed)
+        embed.add_field(name="----------------------Provider----------------------", value="--------------------------------------------------", inline=False)
+        embed.add_field(name="Domain Provider", value=str(api_whois_promptapi_out.json()["result"]["registrar"]), inline=True)
+        embed.add_field(name="Updated Date", value=str(api_whois_promptapi_out.json()["result"]["updated_date"]), inline=True)
+        embed.add_field(name="Creation Date", value=str(api_whois_promptapi_out.json()["result"]["creation_date"]), inline=True)
+        embed.add_field(name="Expiration date", value=str(api_whois_promptapi_out.json()["result"]["expiration_date"]), inline=True)
+        embed.add_field(name="Emails", value=str(api_whois_promptapi_out.json()["result"]["emails"]), inline=True)
+        await message.channel.send(embed=embed)
 
     #delete the "please wait" message
     await bot.http.delete_message(channel_id_whois, msg_id_whois)
@@ -119,9 +132,10 @@ async def whois(message, whois_domain):
 @bot.command()
 async def changelog (message):
     #send changelog embed
-    embed=discord.Embed(title="Changelog (Bot version: V2.1.0)", color=0x0088ff)
+    embed=discord.Embed(title="Changelog (Bot version: V2.2.0)", color=0x0088ff)
     embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
     embed.set_thumbnail(url="https://img.icons8.com/plasticine/100/000000/approve-and-update.png")
+    embed.add_field(name="V2.2.0", value="- Added user friendly error messages. \n - Minor bug fixes \n - RegEx integration", inline=False)
     embed.add_field(name="V2.1.0", value="- Added DNS lookup", inline=False)
     embed.add_field(name="V2.0.0", value="- Bot backend has been rewritten for stability, reliability, security and making it much more faster. Thanks to <@608636292301062184> for the help. \n \n - added **Please Wait** messages when performing a command.", inline=False)
     embed.add_field(name="V1.2.2", value="- Added more whois information.\n \n" + "- Whois is more user friendly to read.", inline=False)
@@ -182,14 +196,29 @@ async def domainlist (message, sublist_responce):
     sublist_output = os.popen("pdlist " + sublist_responce)
 
     try:
-        embed=discord.Embed(title="subdomains for " + sublist_responce, description=sublist_output.read()[564:], color=0x83ff61)
+        #check if it's an IP
+        sanitized_word_output_domainlist = re.search("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",sublist_responce).group()
+        embed=discord.Embed(title="OOPS!", description="```This command only works with a domain name```", color=0xf40101)
+        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        await message.channel.send(embed=embed)
+        await bot.http.delete_message(channel_id_domainlist, message_id_domainlist)
+        return
+    except:
+        #check if it's a domain
+        sanitized_word_output_domainlist = re.search("([\w\-]+\.\w{2,})",sublist_responce).group()
+
+
+    try:
+        embed=discord.Embed(title="subdomains for " + sanitized_word_output_domainlist, description=sublist_output.read()[564:], color=0x83ff61)
         embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
         embed.set_thumbnail(url="https://image.flaticon.com/icons/png/512/1490/1490342.png")
         embed.set_footer(text=config["Embeds"]["template"]["footer"])
         await message.channel.send(embed=embed)
         
     except:
-        embed=discord.Embed(title="OOPS!", description="```" + "Sorry, there was an error. It could be that the domain " + sublist_responce + " has too many subdomains to be listed here." + "```", color=0xf40101)
+        embed=discord.Embed(title="OOPS!", description="```" + "Sorry, there was an error. It could be that " + sublist_responce + " has too many related domains to be listed here." + "```", color=0xf40101)
         embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
         embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
         embed.set_footer(text=config["Embeds"]["template"]["footer"])
@@ -216,14 +245,19 @@ async def fullwhois (message, fullwhois_domain):
     #get channel id
     channel_id_fullwhois = message.channel.id
 
-    raw_fullwhois_api = requests.get("http://api.ipstack.com/" + fullwhois_domain + "?access_key=" + config["Api_keys"]["busters_api"], headers=headers)
-    raw_whois_api_promptapi = requests.get("https://api.promptapi.com/whois/query?domain=" + fullwhois_domain, headers=headers)
+    try:
+        sanitized_word_output_fullwhois = re.search('^((\*)|((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|((\*\.)?([a-zA-Z0-9-]+\.){0,5}[a-zA-Z0-9-][a-zA-Z0-9-]+\.[a-zA-Z]{2,63}?))$', str(fullwhois_domain)).group()
+    except:
+        sanitized_word_output_fullwhois = re.search('([\w\-]+\.\w{2,})', str(fullwhois_domain)).group()
+
+    raw_fullwhois_api = requests.get("http://api.ipstack.com/" + sanitized_word_output_fullwhois + "?access_key=" + config["Api_keys"]["busters_api"], headers=headers)
+    raw_whois_api_promptapi = requests.get("https://api.promptapi.com/whois/query?domain=" + sanitized_word_output_fullwhois, headers=headers)
 
     formatting_replace_fullwhois = str(raw_fullwhois_api.json()).replace(",", "\n").replace("'", "").replace("[{", "").replace("{", "").replace("}}", "")
     
     formatting_replace_promptapi = str(raw_whois_api_promptapi.json()).replace("{", "").replace('"', "").replace("_", " ").replace(",", "\n").replace("'", "").replace("}}", "")
 
-    embed=discord.Embed(title="here is the full Whois output of " + fullwhois_domain, description=formatting_replace_fullwhois[12:] + "\n\n" + "**Some more information, these may be duplicates**" + "\n\n" + formatting_replace_promptapi[7:], color=0x83ff61)
+    embed=discord.Embed(title="here is the full Whois output of " + sanitized_word_output_fullwhois, description=formatting_replace_fullwhois[12:] + "\n\n" + "**Some more information, these may be duplicates**" + "\n\n" + formatting_replace_promptapi[7:], color=0x83ff61)
     embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
     embed.set_thumbnail(url="https://cdn.pixabay.com/photo/2017/05/24/07/05/searching-2339723_1280.png")
     embed.set_footer(text=config["Embeds"]["template"]["footer"])
@@ -242,20 +276,22 @@ async def webping (message, webping_responce):
     #get channel id
     channel_id_webping = message.channel.id
 
-    sanitized_word_output = re.match("(([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,})",webping_responce).group(1)
-    
-    output_ping = os.popen("ping -c 3 " + str(sanitized_word_output))
-    
+    try:
+        sanitized_word_output_webping = re.search('^((\*)|((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|((\*\.)?([a-zA-Z0-9-]+\.){0,5}[a-zA-Z0-9-][a-zA-Z0-9-]+\.[a-zA-Z]{2,63}?))$', str(webping_responce)).group()
+    except:
+        sanitized_word_output_webping = re.search('([\w\-]+\.\w{2,})', str(webping_responce)).group()
+
+    output_ping = os.popen("ping -c 3 " + sanitized_word_output_webping)
     if output_ping.read() == "":
-        embed=discord.Embed(title="ping for " + str(sanitized_word_output), description="I don't seem to know this domain. Is it a valid domain and don't include the http or https protocol.", color=0xf40101)
+        embed=discord.Embed(title="ping for " + sanitized_word_output_webping, description="I don't seem to know this domain. Is it a valid domain?", color=0xf40101)
         embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
         embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
         embed.set_footer(text=config["Embeds"]["template"]["footer"])
         await message.channel.send(embed=embed)
     else:
-        output_ping = os.popen("ping -c 3 " + str(sanitized_word_output))
+        output_ping = os.popen("ping -c 3 " + sanitized_word_output_webping)
         
-        embed=discord.Embed(title="ping for " + str(sanitized_word_output), description=output_ping.read(), color=0xf40101)
+        embed=discord.Embed(title="ping for " + sanitized_word_output_webping, description=output_ping.read(), color=0xf40101)
         embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
         embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
         embed.set_footer(text=config["Embeds"]["template"]["footer"])
@@ -275,13 +311,25 @@ async def dns (message, dns_input):
     #get channel id
     channel_id_dnslookup = message.channel.id
 
-    sanitized_word_output_dnsenum = re.match("(([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,})",dns_input).group(1)
+    try:
+        #check if it's an IP
+        sanitized_word_output_dnsenum = re.search("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",dns_input).group()
+        embed=discord.Embed(title="OOPS!", description="```This command only works with a domain name```", color=0xf40101)
+        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        await message.channel.send(embed=embed)
+        await bot.http.delete_message(channel_id_dnslookup, message_id_dnslookup)
+        return
+    except:
+        #check if it's a domain
+        sanitized_word_output_dnsenum = re.search("([\w\-]+\.\w{2,})",dns_input).group()
     
     output_dns = os.popen("dnsenum " + str(sanitized_word_output_dnsenum))
 
     remove_odd_shit = str(output_dns.read().replace("[1;34m", "").replace("[0m", "")).replace("[1;31m", "")[50:]
 
-    embed=discord.Embed(title="Grabbing DNS records for " + dns_input, description=remove_odd_shit + "\n**Note: You should not rely on this feature and conduct your own test as this feature may not display all DNS records**", color=0xf40101)
+    embed=discord.Embed(title="Grabbing DNS records for " + sanitized_word_output_dnsenum, description=remove_odd_shit + "\n**Note: You should not rely on this feature and conduct your own test as this feature may not display all DNS records**", color=0xf40101)
     embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
     embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
     embed.set_footer(text=config["Embeds"]["template"]["footer"])
@@ -296,4 +344,4 @@ async def dns (message, dns_input):
 
 
 
-bot.run(config["Bot_config"]["Main_Bot_Token"])
+bot.run(config["Bot_config"]["Test_Bot_Token"])

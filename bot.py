@@ -242,7 +242,7 @@ async def webping (message, webping_responce):
     #get channel id
     channel_id_webping = message.channel.id
 
-    sanitized_word_output = re.match("([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}",webping_responce).group(0)
+    sanitized_word_output = re.match("(([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,})",webping_responce).group(1)
     
     output_ping = os.popen("ping -c 3 " + str(sanitized_word_output))
     
@@ -275,7 +275,7 @@ async def dns (message, dns_input):
     #get channel id
     channel_id_dnslookup = message.channel.id
 
-    sanitized_word_output_dnsenum = re.match("([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}",dns_input).group(0)
+    sanitized_word_output_dnsenum = re.match("(([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,})",dns_input).group(1)
     
     output_dns = os.popen("dnsenum " + str(sanitized_word_output_dnsenum))
 

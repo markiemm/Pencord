@@ -76,7 +76,7 @@ async def whois(message, whois_domain):
     #get the channel ID
     channel_id_whois = message.channel.id
     
-    sanitized_word_output_whois = re.search('([0-9a-z-]{2,}\.[0-9a-z-]{2,3}\.[0-9a-z-]{2,3}|[0-9a-z-]{2,}\.[0-9a-z-]{2,3})$', str(whois_domain)).group()
+    sanitized_word_output_whois = re.search('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', str(whois_domain)).group()
     try: 
         if re.match("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$", whois_domain):
             raw_fullwhois_api = requests.get("http://api.ipstack.com/" + whois_domain + "?access_key=" + config["Api_keys"]["busters_api"], headers=headers)
@@ -215,7 +215,7 @@ async def domainlist (message, sublist_responce):
         return
     except:
         #check if it's a domain
-        sanitized_word_output_domainlist = re.search("([0-9a-z-]{2,}\.[0-9a-z-]{2,3}\.[0-9a-z-]{2,3}|[0-9a-z-]{2,}\.[0-9a-z-]{2,3})$",sublist_responce).group()
+        sanitized_word_output_domainlist = re.search("([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}",sublist_responce).group()
 
 
     try:
@@ -256,7 +256,7 @@ async def fullwhois (message, fullwhois_domain):
     try:
         sanitized_word_output_fullwhois = re.search('^((\*)|((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|((\*\.)?([a-zA-Z0-9-]+\.){0,5}[a-zA-Z0-9-][a-zA-Z0-9-]+\.[a-zA-Z]{2,63}?))$', str(fullwhois_domain)).group()
     except:
-        sanitized_word_output_fullwhois = re.search('([0-9a-z-]{2,}\.[0-9a-z-]{2,3}\.[0-9a-z-]{2,3}|[0-9a-z-]{2,}\.[0-9a-z-]{2,3})$', str(fullwhois_domain)).group()
+        sanitized_word_output_fullwhois = re.search('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', str(fullwhois_domain)).group()
 
     raw_fullwhois_api = requests.get("http://api.ipstack.com/" + sanitized_word_output_fullwhois + "?access_key=" + config["Api_keys"]["busters_api"], headers=headers)
     raw_whois_api_promptapi = requests.get("https://api.promptapi.com/whois/query?domain=" + sanitized_word_output_fullwhois, headers=headers)
@@ -287,7 +287,7 @@ async def webping (message, webping_responce):
     try:
         sanitized_word_output_webping = re.search('^((\*)|((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|((\*\.)?([a-zA-Z0-9-]+\.){0,5}[a-zA-Z0-9-][a-zA-Z0-9-]+\.[a-zA-Z]{2,63}?))$', str(webping_responce)).group()
     except:
-        sanitized_word_output_webping = re.search('([0-9a-z-]{2,}\.[0-9a-z-]{2,3}\.[0-9a-z-]{2,3}|[0-9a-z-]{2,}\.[0-9a-z-]{2,3})$', str(webping_responce)).group()
+        sanitized_word_output_webping = re.search('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', str(webping_responce)).group()
 
     output_ping = os.popen("ping -c 3 " + sanitized_word_output_webping)
     if output_ping.read() == "":
@@ -331,7 +331,7 @@ async def dns (message, dns_input):
         return
     except:
         #check if it's a domain
-        sanitized_word_output_dnsenum = re.search("([0-9a-z-]{2,}\.[0-9a-z-]{2,3}\.[0-9a-z-]{2,3}|[0-9a-z-]{2,}\.[0-9a-z-]{2,3})$",dns_input).group()
+        sanitized_word_output_dnsenum = re.search("([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}",dns_input).group()
     
     output_dns = os.popen("dnsenum " + str(sanitized_word_output_dnsenum))
 

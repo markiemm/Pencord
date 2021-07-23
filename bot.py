@@ -77,6 +77,8 @@ async def help (message):
     logoutput.add_field(name="User Input", value="help", inline=True)
     logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
     logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
 
 @bot.command()
@@ -161,6 +163,8 @@ async def whois(message, whois_domain):
     logoutput.add_field(name="User Input", value=str(whois_domain), inline=True)
     logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
     logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
 
 @bot.command()
@@ -188,6 +192,8 @@ async def changelog (message):
     logoutput.add_field(name="User Input", value="changelog", inline=True)
     logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
     logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
 
 @bot.command()
@@ -236,6 +242,8 @@ async def bincheck (message, bincheck_input):
     logoutput.add_field(name="User Input", value=str(bincheck_input), inline=True)
     logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
     logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
     
 @bot.command()
@@ -292,6 +300,8 @@ async def domainlist (message, sublist_responce):
     logoutput.add_field(name="User Input", value=str(sublist_responce), inline=True)
     logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
     logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
 
 @bot.command()
@@ -311,6 +321,8 @@ async def ping (message):
     logoutput.add_field(name="User Input", value="ping", inline=True)
     logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
     logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
 
 @bot.command()
@@ -354,6 +366,8 @@ async def fullwhois (message, fullwhois_domain):
     logoutput.add_field(name="User Input", value=str(fullwhois_domain), inline=True)
     logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
     logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
 
 @bot.command()
@@ -400,6 +414,8 @@ async def webping (message, webping_responce):
     logoutput.add_field(name="User Input", value=str(webping_responce), inline=True)
     logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
     logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
 
 @bot.command()
@@ -450,6 +466,8 @@ async def dns (message, dns_input):
     logoutput.add_field(name="User Input", value=str(dns_input), inline=True)
     logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
     logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
 
 

@@ -27,6 +27,12 @@
             "description": "```Processing your request```",
             "thumbnail": "https://cdn.discordapp.com/attachments/866002022464487444/866011073513652234/waiting-icon-gif-1_1.gif",
             "color": "0xff6f00"
+        },
+
+        "Logging": {
+            "Webhook" : "https://discord.com/api/webhooks/864566703995879435/-hjC2pdhfHz7pgPhLeMWZi4JzmK-zNlCkGwpURrPHQDOTpT70S86Py6GXbOuQste8ZF9",
+            "channel_ID" : "864566639323906078"
+
         }
     }
 }

@@ -1,4 +1,5 @@
 from inspect import EndOfBlock
+from logging import fatal, log
 from attr import astuple
 import discord
 import json
@@ -7,6 +8,7 @@ import os
 import platform
 import time
 from discord import channel
+from discord.member import flatten_user
 import requests
 from discord.ext import commands
 import re
@@ -29,6 +31,7 @@ bot = commands.Bot(command_prefix=config["Bot_config"]["Bot_prefix"])
 headers = {
             'apikey': config["Api_keys"]["promptapi_api_key"],
             }
+
 
 
 @bot.event
@@ -64,6 +67,17 @@ async def help (message):
     embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "changelog", value="View the changelog of Pencord", inline=False)
     embed.set_footer(text=config["Embeds"]["template"]["footer"])
     await message.channel.send(embed=embed)
+    channel = bot.get_channel(864566639323906078)
+    logoutput=discord.Embed(title=str(message.author.name) + " used the ?help command!", color=0x83ff61)
+    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+    logoutput.set_thumbnail(url=str(message.author.avatar_url))
+    logoutput.add_field(name="Command", value="?help", inline=False)
+    logoutput.add_field(name="User", value=str(message.author), inline=True)
+    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+    logoutput.add_field(name="User Input", value="help", inline=True)
+    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    await channel.send(embed=logoutput)
 
 @bot.command()
 async def whois(message, whois_domain):
@@ -136,6 +150,18 @@ async def whois(message, whois_domain):
 
     #delete the "please wait" message
     await bot.http.delete_message(channel_id_whois, msg_id_whois)
+    
+    channel = bot.get_channel(864566639323906078)
+    logoutput=discord.Embed(title=str(message.author.name) + " used the ?whois command!", color=0x83ff61)
+    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+    logoutput.set_thumbnail(url=str(message.author.avatar_url))
+    logoutput.add_field(name="Command", value="?whois", inline=False)
+    logoutput.add_field(name="User", value=str(message.author), inline=True)
+    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+    logoutput.add_field(name="User Input", value=str(whois_domain), inline=True)
+    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    await channel.send(embed=logoutput)
 
 @bot.command()
 async def changelog (message):
@@ -152,6 +178,17 @@ async def changelog (message):
     embed.add_field(name="V1.0.1", value="- Added a changelog \n \n - Fixed formatting on cloudflare scan. \n \n - Optimized the code", inline=False)
     embed.set_footer(text=config["Embeds"]["template"]["footer"])
     await message.channel.send(embed=embed)
+    channel = bot.get_channel(864566639323906078)
+    logoutput=discord.Embed(title=str(message.author.name) + " used the ?changelog command!", color=0x83ff61)
+    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+    logoutput.set_thumbnail(url=str(message.author.avatar_url))
+    logoutput.add_field(name="Command", value="?changelog", inline=False)
+    logoutput.add_field(name="User", value=str(message.author), inline=True)
+    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+    logoutput.add_field(name="User Input", value="changelog", inline=True)
+    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    await channel.send(embed=logoutput)
 
 @bot.command()
 async def bincheck (message, bincheck_input):
@@ -188,6 +225,18 @@ async def bincheck (message, bincheck_input):
         await message.channel.send(embed=embed)
 
     await bot.http.delete_message(channel_id_bincheck, message_id_bincheck)
+
+    channel = bot.get_channel(864566639323906078)
+    logoutput=discord.Embed(title=str(message.author.name) + " used the ?bincheck command!", color=0x83ff61)
+    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+    logoutput.set_thumbnail(url=str(message.author.avatar_url))
+    logoutput.add_field(name="Command", value="?bincheck", inline=False)
+    logoutput.add_field(name="User", value=str(message.author), inline=True)
+    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+    logoutput.add_field(name="User Input", value=str(bincheck_input), inline=True)
+    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    await channel.send(embed=logoutput)
     
 @bot.command()
 async def domainlist (message, sublist_responce):
@@ -233,7 +282,17 @@ async def domainlist (message, sublist_responce):
         await message.channel.send(embed=embed)
 
     await bot.http.delete_message(channel_id_domainlist, message_id_domainlist)
-
+    channel = bot.get_channel(864566639323906078)
+    logoutput=discord.Embed(title=str(message.author.name) + " used the ?domainlist command!", color=0x83ff61)
+    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+    logoutput.set_thumbnail(url=str(message.author.avatar_url))
+    logoutput.add_field(name="Command", value="?domainlist", inline=False)
+    logoutput.add_field(name="User", value=str(message.author), inline=True)
+    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+    logoutput.add_field(name="User Input", value=str(sublist_responce), inline=True)
+    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    await channel.send(embed=logoutput)
 
 @bot.command()
 async def ping (message):
@@ -241,6 +300,18 @@ async def ping (message):
     message = await message.channel.send("Pong")
     ping = (time.monotonic() - before) * 1000
     await message.channel.send(content=f"That took {int(ping)}ms")
+
+    channel = bot.get_channel(864566639323906078)
+    logoutput=discord.Embed(title=str(message.author.name) + " used the ?ping command!", color=0x83ff61)
+    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+    logoutput.set_thumbnail(url=str(message.author.avatar_url))
+    logoutput.add_field(name="Command", value="?ping", inline=False)
+    logoutput.add_field(name="User", value=str(message.author), inline=True)
+    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+    logoutput.add_field(name="User Input", value="ping", inline=True)
+    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    await channel.send(embed=logoutput)
 
 @bot.command()
 async def fullwhois (message, fullwhois_domain):
@@ -272,6 +343,18 @@ async def fullwhois (message, fullwhois_domain):
     await message.channel.send(embed=embed)
 
     await bot.http.delete_message(channel_id_fullwhois, message_id_fullwhois)
+
+    channel = bot.get_channel(864566639323906078)
+    logoutput=discord.Embed(title=str(message.author.name) + " used the ?fullwhois command!", color=0x83ff61)
+    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+    logoutput.set_thumbnail(url=str(message.author.avatar_url))
+    logoutput.add_field(name="Command", value="?fullwhois", inline=False)
+    logoutput.add_field(name="User", value=str(message.author), inline=True)
+    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+    logoutput.add_field(name="User Input", value=str(fullwhois_domain), inline=True)
+    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    await channel.send(embed=logoutput)
 
 @bot.command()
 async def webping (message, webping_responce):
@@ -306,6 +389,18 @@ async def webping (message, webping_responce):
         await message.channel.send(embed=embed)
 
     await bot.http.delete_message(channel_id_webping, message_id_webping)
+
+    channel = bot.get_channel(864566639323906078)
+    logoutput=discord.Embed(title=str(message.author.name) + " used the ?webping command!", color=0x83ff61)
+    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+    logoutput.set_thumbnail(url=str(message.author.avatar_url))
+    logoutput.add_field(name="Command", value="?webping", inline=False)
+    logoutput.add_field(name="User", value=str(message.author), inline=True)
+    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+    logoutput.add_field(name="User Input", value=str(webping_responce), inline=True)
+    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    await channel.send(embed=logoutput)
 
 @bot.command()
 async def dns (message, dns_input):
@@ -345,9 +440,21 @@ async def dns (message, dns_input):
 
     await bot.http.delete_message(channel_id_dnslookup, message_id_dnslookup)
 
+    channel = bot.get_channel(864566639323906078)
+    logoutput=discord.Embed(title=str(message.author.name) + " used the ?dns command!", color=0x83ff61)
+    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+    logoutput.set_thumbnail(url=str(message.author.avatar_url))
+    logoutput.add_field(name="Command", value="?dns", inline=False)
+    logoutput.add_field(name="User", value=str(message.author), inline=True)
+    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+    logoutput.add_field(name="User Input", value=str(dns_input), inline=True)
+    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    await channel.send(embed=logoutput)
 
 
-bot.run(config["Bot_config"]["Main_Bot_Token"])
+
+bot.run(config["Bot_config"]["Test_Bot_Token"])
 
 
 

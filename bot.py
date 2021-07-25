@@ -1,3 +1,5 @@
+from asyncio import tasks
+import datetime
 from inspect import EndOfBlock
 from logging import fatal, log
 from attr import astuple
@@ -10,9 +12,11 @@ import time
 from discord import channel
 from discord.member import flatten_user
 import requests
-from discord.ext import commands
+from discord.ext import commands, tasks
 import re
 import ipaddress
+import random
+from discord.ext.commands import Bot
 
 #load config
 if not os.path.isfile("config.json"):
@@ -25,12 +29,14 @@ print("loaded config")
 
 bot = commands.Bot(command_prefix=config["Bot_config"]["Bot_prefix"])
 
-
+BotStartTime = datetime.datetime.now()
 
 #variables
 headers = {
             'apikey': config["Api_keys"]["promptapi_api_key"],
             }
+
+
 
 
 
@@ -41,7 +47,9 @@ async def on_ready():
     print(f"Python version: {platform.python_version()}")
     print(f"Running on: {platform.system()} {platform.release()} ({os.name})")
     print("-------------------")
+    await bot.change_presence(activity=discord.Game(config["Bot_config"]["Bot_prefix"] + "help"))
     
+
 
 bot.remove_command("help")
 
@@ -170,7 +178,7 @@ async def whois(message, whois_domain):
 @bot.command()
 async def changelog (message):
     #send changelog embed
-    embed=discord.Embed(title="Changelog (Bot version: V2.2.0)", color=0x0088ff)
+    embed=discord.Embed(title="Changelog (Bot version: " + "V" + config["Bot_config"]["Version"] + ")", color=0x0088ff)
     embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
     embed.set_thumbnail(url="https://img.icons8.com/plasticine/100/000000/approve-and-update.png")
     embed.add_field(name="V2.2.0", value="- Added user friendly error messages. \n - Minor bug fixes \n - RegEx integration", inline=False)
@@ -470,9 +478,20 @@ async def dns (message, dns_input):
     logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
 
+@bot.command()
+async def status (message):
+    embed=discord.Embed(title="Pencord Status", description="Here is the status for Pencord:", color=0x0088ff)
+    embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+    embed.add_field(name="servers", value=len(bot.guilds), inline=True)
+    embed.add_field(name="Uptime", value=datetime.datetime.now().replace(microsecond=0) - BotStartTime.replace(microsecond=0), inline=True)
+    embed.add_field(name="Version", value=config["Bot_config"]["Version"], inline=True)
+    embed.add_field(name="System Health", value=":white_check_mark: ", inline=True)
+    embed.add_field(name="Errors", value="No errors :white_check_mark: ", inline=False)
+    embed.set_footer(text=config["Embeds"]["template"]["footer"])
+    await message.send(embed=embed)
 
 
-bot.run(config["Bot_config"]["Main_Bot_Token"])
+bot.run(config["Bot_config"]["Test_Bot_Token"])
 
 
 

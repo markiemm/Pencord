@@ -491,7 +491,7 @@ async def status (message):
     await message.send(embed=embed)
 
 
-bot.run(config["Bot_config"]["Test_Bot_Token"])
+bot.run(config["Bot_config"]["Main_Bot_Token"])
 
 
 

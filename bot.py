@@ -2,6 +2,7 @@ from asyncio import tasks
 import datetime
 from inspect import EndOfBlock
 from logging import fatal, log
+from typing import Any
 from attr import astuple
 import discord
 import json
@@ -10,6 +11,7 @@ import os
 import platform
 import time
 from discord import channel
+from discord.ext.commands.core import group
 from discord.member import flatten_user
 import requests
 from discord.ext import commands, tasks
@@ -35,9 +37,6 @@ BotStartTime = datetime.datetime.now()
 headers = {
             'apikey': config["Api_keys"]["promptapi_api_key"],
             }
-
-
-
 
 
 @bot.event
@@ -96,71 +95,91 @@ async def whois(message, whois_domain):
     please_wait_message = await message.channel.send(embed=please_wait)
 
     #get the message ID of the "please wait message"
-    msg_id_whois = please_wait_message.id
+    message_id_whois = please_wait_message.id
 
     #get the channel ID
     channel_id_whois = message.channel.id
-    
-    sanitized_word_output_whois = re.search('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', str(whois_domain)).group()
-    try: 
-        if re.match("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$", whois_domain):
-            raw_fullwhois_api = requests.get("http://api.ipstack.com/" + whois_domain + "?access_key=" + config["Api_keys"]["busters_api"], headers=headers)
-            formatting_replace_whois = str(raw_fullwhois_api.json()).replace(",", "\n").replace("'", "").replace("[{", "").replace("{", "").replace("}}", "")
-            embed=discord.Embed(title="Basic Whois search is unavailable for IP's, here is the full whois for " + whois_domain, description=formatting_replace_whois[12:], color=0x83ff61)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-            embed.set_thumbnail(url="https://cdn.pixabay.com/photo/2017/05/24/07/05/searching-2339723_1280.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
-            await message.channel.send(embed=embed)
-        else:
-            #make a request to promptapi
-            api_whois_promptapi_out = requests.get("https://api.promptapi.com/whois/query?domain=" + sanitized_word_output_whois, headers=headers)
-            api_whois_ipstack_out = requests.get("http://api.ipstack.com/" + whois_domain + "?access_key=" + config["Api_keys"]["busters_api"], headers=headers)
 
-            embed=discord.Embed(title="Pencord Whois Data for " + sanitized_word_output_whois, description="Here is the basic Whois data for " + sanitized_word_output_whois, color=0x83ff61)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-            embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/866002022464487444/866410785936506880/1200px-VisualEditor_-_Icon_-_Open-book-2.svg.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+    #sanitize the user input
+    whois_user_input_sanitize_domain = re.match('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', whois_domain)
+    whois_user_input_sanitize_IP = re.match('^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$', whois_domain)
 
-            embed.add_field(name="----------------------Location----------------------", value="-----------------------------------------------------", inline=False)
-            embed.add_field(name="Country name", value=api_whois_ipstack_out.json()["country_name"], inline=True)
-            embed.add_field(name="Continent name", value=api_whois_ipstack_out.json()["continent_name"], inline=True)
-            embed.add_field(name="Region name", value=api_whois_ipstack_out.json()["region_name"], inline=True)
-            embed.add_field(name="City", value=api_whois_ipstack_out.json()["city"], inline=True)
-            embed.add_field(name="Zip Code", value=api_whois_ipstack_out.json()["zip"], inline=True)
-            embed.add_field(name="Capital", value=api_whois_ipstack_out.json()["location"]["capital"], inline=True)
+    if whois_user_input_sanitize_domain.group() in ["pornhub.com","brazzars.com", "xvideos.com", "xhamster.com", "xxx.com", "onlyfans.com", "XNXX.com", "youporn.com", "porn.com"]:
+        await message.channel.send (message.author.name + ", you dirty fucker")
+        await bot.http.delete_message(channel_id_whois, message_id_whois)
+        return
 
-            embed.add_field(name="latitude", value=api_whois_ipstack_out.json()["latitude"], inline=True)
-            embed.add_field(name="longitude", value=api_whois_ipstack_out.json()["longitude"], inline=True)
 
-            embed.add_field(name="----------------------Codes----------------------", value="-------------------------------------------------", inline=False)
-            embed.add_field(name="Country code", value=api_whois_ipstack_out.json()["country_code"], inline=True)
-            embed.add_field(name="Continent code", value=api_whois_ipstack_out.json()["continent_code"], inline=True)
-            embed.add_field(name="Region code", value=api_whois_ipstack_out.json()["region_code"], inline=True)
-            embed.add_field(name="Geoname id", value=api_whois_ipstack_out.json()["location"]["geoname_id"], inline=True)
-            embed.add_field(name="Calling code", value=str(api_whois_ipstack_out.json()["location"]["calling_code"]), inline=True)
-
-            embed.add_field(name="----------------------Status----------------------", value="--------------------------------------------------", inline=False)
-            embed.add_field(name="type", value=api_whois_ipstack_out.json()["type"], inline=True)
-            embed.add_field(name="Is eu", value=str(api_whois_ipstack_out.json()["location"]["is_eu"]), inline=True)
-
-            embed.add_field(name="----------------------Provider----------------------", value="--------------------------------------------------", inline=False)
-            embed.add_field(name="Domain Provider", value=str(api_whois_promptapi_out.json()["result"]["registrar"]), inline=True)
-            embed.add_field(name="Updated Date", value=str(api_whois_promptapi_out.json()["result"]["updated_date"]), inline=True)
-            embed.add_field(name="Creation Date", value=str(api_whois_promptapi_out.json()["result"]["creation_date"]), inline=True)
-            embed.add_field(name="Expiration date", value=str(api_whois_promptapi_out.json()["result"]["expiration_date"]), inline=True)
-            embed.add_field(name="Emails", value=str(api_whois_promptapi_out.json()["result"]["emails"]), inline=True)
-            await message.channel.send(embed=embed)
-    except:
-        
-        embed=discord.Embed(title="Oops", description="```It seems you have entered a wrong query, we don't support that query or that " + sanitized_word_output_whois + " dosen't even exist.```" , color=0x83ff61)
+    if whois_user_input_sanitize_IP!=None:
+        raw_fullwhois_api = requests.get("http://api.ipstack.com/" + whois_user_input_sanitize_IP.group() + "?access_key=" + config["Api_keys"]["IP_stack"], headers=headers)
+        embed=discord.Embed(title="Basic whois data for IP's is not available", description="Here is the full Whois Data", color=0x83ff61)
         embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-        embed.set_thumbnail(url="https://cdn.pixabay.com/photo/2017/05/24/07/05/searching-2339723_1280.png")
+        embed.set_thumbnail(url="https://media.discordapp.net/attachments/866002022464487444/866410785936506880/1200px-VisualEditor_-_Icon_-_Open-book-2.svg.png?width=580&height=580")
+        embed.add_field(name="Data for " + str(whois_user_input_sanitize_IP.group()), value=str(raw_fullwhois_api.json()).replace(",", "\n").replace("'", "").replace("[{", "").replace("{", "").replace("}}", "").replace("}]", "").replace("_", " "), inline=False)
+        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        await message.send(embed=embed)
+        
+    
+    elif whois_user_input_sanitize_domain!=None:
+
+        api_whois_promptapi_out = requests.get("https://api.promptapi.com/whois/query?domain=" + whois_user_input_sanitize_domain.group(), headers=headers)
+        api_whois_ipstack_out = requests.get("http://api.ipstack.com/" + whois_user_input_sanitize_domain.group() + "?access_key=" + config["Api_keys"]["IP_stack"], headers=headers)
+
+        if api_whois_ipstack_out.json()["country_code"] == None:
+            embed=discord.Embed(title="Looks like that domain does not exist, please enter a valid domain.", color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+            await bot.http.delete_message(channel_id_whois, message_id_whois)
+            return
+
+        
+        embed=discord.Embed(title="Pencord Whois Data for " + whois_user_input_sanitize_domain.group(), description="Here is the basic Whois data for " + whois_user_input_sanitize_domain.group(), color=0x83ff61)
+        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/866002022464487444/866410785936506880/1200px-VisualEditor_-_Icon_-_Open-book-2.svg.png")
+        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+
+        embed.add_field(name="----------------------Location----------------------", value="-----------------------------------------------------", inline=False)
+        embed.add_field(name="Country name", value=api_whois_ipstack_out.json()["country_name"], inline=True)
+        embed.add_field(name="Continent name", value=api_whois_ipstack_out.json()["continent_name"], inline=True)
+        embed.add_field(name="Region name", value=api_whois_ipstack_out.json()["region_name"], inline=True)
+        embed.add_field(name="City", value=api_whois_ipstack_out.json()["city"], inline=True)
+        embed.add_field(name="Zip Code", value=api_whois_ipstack_out.json()["zip"], inline=True)
+        embed.add_field(name="Capital", value=api_whois_ipstack_out.json()["location"]["capital"], inline=True)
+
+        embed.add_field(name="latitude", value=api_whois_ipstack_out.json()["latitude"], inline=True)
+        embed.add_field(name="longitude", value=api_whois_ipstack_out.json()["longitude"], inline=True)
+
+        embed.add_field(name="----------------------Codes----------------------", value="-------------------------------------------------", inline=False)
+        embed.add_field(name="Country code", value=api_whois_ipstack_out.json()["country_code"], inline=True)
+        embed.add_field(name="Continent code", value=api_whois_ipstack_out.json()["continent_code"], inline=True)
+        embed.add_field(name="Region code", value=api_whois_ipstack_out.json()["region_code"], inline=True)
+        embed.add_field(name="Geoname id", value=api_whois_ipstack_out.json()["location"]["geoname_id"], inline=True)
+        embed.add_field(name="Calling code", value=str(api_whois_ipstack_out.json()["location"]["calling_code"]), inline=True)
+
+        embed.add_field(name="----------------------Status----------------------", value="--------------------------------------------------", inline=False)
+        embed.add_field(name="type", value=api_whois_ipstack_out.json()["type"], inline=True)
+        embed.add_field(name="Is eu", value=str(api_whois_ipstack_out.json()["location"]["is_eu"]), inline=True)
+        
+        embed.add_field(name="----------------------Provider----------------------", value="--------------------------------------------------", inline=False)
+        embed.add_field(name="Domain Provider", value=str(api_whois_promptapi_out.json()["result"]["registrar"]), inline=True)
+        embed.add_field(name="Updated Date", value=str(api_whois_promptapi_out.json()["result"]["updated_date"]), inline=True)
+        embed.add_field(name="Creation Date", value=str(api_whois_promptapi_out.json()["result"]["creation_date"]), inline=True)
+        embed.add_field(name="Expiration date", value=str(api_whois_promptapi_out.json()["result"]["expiration_date"]), inline=True)
+        embed.add_field(name="Emails", value=str(api_whois_promptapi_out.json()["result"]["emails"]), inline=True)
+        await message.channel.send(embed=embed)
+
+    else:
+        embed=discord.Embed(title="Looks like you did not enter a domain or IP address", color=0xf40101)
+        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
         embed.set_footer(text=config["Embeds"]["template"]["footer"])
         await message.channel.send(embed=embed)
 
 
     #delete the "please wait" message
-    await bot.http.delete_message(channel_id_whois, msg_id_whois)
+    await bot.http.delete_message(channel_id_whois, message_id_whois)
     
     channel = bot.get_channel(864566639323906078)
     logoutput=discord.Embed(title=str(message.author.name) + " used the ?whois command!", color=0x83ff61)
@@ -182,6 +201,7 @@ async def changelog (message):
     embed=discord.Embed(title="Changelog (Bot version: " + "V" + config["Bot_config"]["Version"] + ")", color=0x0088ff)
     embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
     embed.set_thumbnail(url="https://img.icons8.com/plasticine/100/000000/approve-and-update.png")
+    embed.add_field(name="V2.2.5", value="- fixed minor bugs \n - added new error messages \n", inline=False)
     embed.add_field(name="V2.2.2", value="- Added a status section \n- Code Optimisations.", inline=False)
     embed.add_field(name="V2.2.0", value="- Added user friendly error messages. \n - Minor bug fixes \n - RegEx integration", inline=False)
     embed.add_field(name="V2.1.0", value="- Added DNS lookup", inline=False)
@@ -332,23 +352,55 @@ async def fullwhois (message, fullwhois_domain):
     #get channel id
     channel_id_fullwhois = message.channel.id
 
-    try:
-        sanitized_word_output_fullwhois = re.search('^((\*)|((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|((\*\.)?([a-zA-Z0-9-]+\.){0,5}[a-zA-Z0-9-][a-zA-Z0-9-]+\.[a-zA-Z]{2,63}?))$', str(fullwhois_domain)).group()
-    except:
-        sanitized_word_output_fullwhois = re.search('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', str(fullwhois_domain)).group()
+    fullwhois_user_input_sanitize_domain = re.match('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', fullwhois_domain)
+    fullwhois_user_input_sanitize_IP = re.match('^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$', fullwhois_domain)
 
-    raw_fullwhois_api = requests.get("http://api.ipstack.com/" + sanitized_word_output_fullwhois + "?access_key=" + config["Api_keys"]["busters_api"], headers=headers)
-    raw_whois_api_promptapi = requests.get("https://api.promptapi.com/whois/query?domain=" + sanitized_word_output_fullwhois, headers=headers)
 
-    formatting_replace_fullwhois = str(raw_fullwhois_api.json()).replace(",", "\n").replace("'", "").replace("[{", "").replace("{", "").replace("}}", "")
+
+    if fullwhois_user_input_sanitize_IP!=None:
+        raw_fullwhois_api = requests.get("http://api.ipstack.com/" + fullwhois_user_input_sanitize_IP.group() + "?access_key=" + config["Api_keys"]["IP_stack"], headers=headers)
+        
+        embed=discord.Embed(title="Here is the full whois for " + fullwhois_user_input_sanitize_IP, color=0x83ff61)
+        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_thumbnail(url="https://media.discordapp.net/attachments/866002022464487444/866410785936506880/1200px-VisualEditor_-_Icon_-_Open-book-2.svg.png?width=580&height=580")
+        embed.add_field(name="Data for " + str(fullwhois_user_input_sanitize_IP.group()), value=str(raw_fullwhois_api.json()).replace(",", "\n").replace("'", "").replace("[{", "").replace("{", "").replace("}}", "").replace("}]", "").replace("_", " "), inline=False)
+        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+
+        
+        await message.send(embed=embed)
+        
     
-    formatting_replace_promptapi = str(raw_whois_api_promptapi.json()).replace("{", "").replace('"', "").replace("_", " ").replace(",", "\n").replace("'", "").replace("}}", "")
+    elif fullwhois_user_input_sanitize_domain!=None:
 
-    embed=discord.Embed(title="here is the full Whois output of " + sanitized_word_output_fullwhois, description=formatting_replace_fullwhois[12:] + "\n\n" + "**Some more information, these may be duplicates**" + "\n\n" + formatting_replace_promptapi[7:], color=0x83ff61)
-    embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-    embed.set_thumbnail(url="https://cdn.pixabay.com/photo/2017/05/24/07/05/searching-2339723_1280.png")
-    embed.set_footer(text=config["Embeds"]["template"]["footer"])
-    await message.channel.send(embed=embed)
+        api_fullwhois_promptapi_out = requests.get("https://api.promptapi.com/whois/query?domain=" + fullwhois_user_input_sanitize_domain.group(), headers=headers)
+        api_fullwhois_ipstack_out = requests.get("http://api.ipstack.com/" + fullwhois_user_input_sanitize_domain.group() + "?access_key=" + config["Api_keys"]["IP_stack"], headers=headers)
+
+        if api_fullwhois_ipstack_out.json()["country_code"] == None:
+            embed=discord.Embed(title="Looks like that domain does not exist, please enter a valid domain.", color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+            await bot.http.delete_message(channel_id_fullwhois, message_id_fullwhois)
+            return
+
+        
+        embed=discord.Embed(title="Here is the full whois for " + fullwhois_user_input_sanitize_domain.group(), color=0x83ff61)
+        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_thumbnail(url="https://media.discordapp.net/attachments/866002022464487444/866410785936506880/1200px-VisualEditor_-_Icon_-_Open-book-2.svg.png?width=580&height=580")
+        embed.add_field(name="Data for " + str(fullwhois_user_input_sanitize_domain.group()), value=str(api_fullwhois_ipstack_out.json()).replace(",", "\n").replace("'", "").replace("[{", "").replace("{", "").replace("}}", "").replace("}]", "").replace("_", " "), inline=False)
+        embed.add_field(name="Some other stuff", value=str(api_fullwhois_promptapi_out.json()).replace("{", "").replace('"', "").replace("_", " ").replace(",", "\n").replace("'", "").replace("}}", ""))
+        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        await message.channel.send(embed=embed)
+
+    else:
+        embed=discord.Embed(title="Looks like you did not enter a domain or IP address", color=0xf40101)
+        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
+        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        await message.channel.send(embed=embed)
+
+    
 
     await bot.http.delete_message(channel_id_fullwhois, message_id_fullwhois)
 
@@ -490,7 +542,7 @@ async def status (message):
     logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
 
 
-bot.run(config["Bot_config"]["Test_Bot_Token"])
+bot.run(config["Bot_config"]["Main_Bot_Token"])
 
 
 

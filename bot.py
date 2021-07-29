@@ -104,10 +104,10 @@ async def whois(message, whois_domain):
     whois_user_input_sanitize_domain = re.match('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', whois_domain)
     whois_user_input_sanitize_IP = re.match('^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$', whois_domain)
 
-    if whois_user_input_sanitize_domain.group() in ["pornhub.com","brazzars.com", "xvideos.com", "xhamster.com", "xxx.com", "onlyfans.com", "XNXX.com", "youporn.com", "porn.com"]:
-        await message.channel.send (message.author.name + ", you dirty fucker")
-        await bot.http.delete_message(channel_id_whois, message_id_whois)
-        return
+    # if whois_user_input_sanitize_domain.group() in ["pornhub.com","brazzars.com", "xvideos.com", "xhamster.com", "xxx.com", "onlyfans.com", "XNXX.com", "youporn.com", "porn.com"]:
+    #     await message.channel.send (message.author.name + ", you dirty fucker")
+    #     await bot.http.delete_message(channel_id_whois, message_id_whois)
+    #     return
 
 
     if whois_user_input_sanitize_IP!=None:
@@ -542,7 +542,7 @@ async def status (message):
     logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
 
 
-bot.run(config["Bot_config"]["Main_Bot_Token"])
+bot.run(config["Bot_config"]["Test_Bot_Token"])
 
 
 

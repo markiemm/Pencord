@@ -321,20 +321,6 @@ async def ping (message):
     ping = (time.monotonic() - before) * 1000
     await message.channel.send(content=f"That took {int(ping)}ms")
 
-    channel = bot.get_channel(864566639323906078)
-    logoutput=discord.Embed(title=str(message.author.name) + " used the ?ping command!", color=0x83ff61)
-    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
-    logoutput.set_thumbnail(url=str(message.author.avatar_url))
-    logoutput.add_field(name="Command", value="?ping", inline=False)
-    logoutput.add_field(name="User", value=str(message.author), inline=True)
-    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
-    logoutput.add_field(name="User Input", value="ping", inline=True)
-    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
-    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
-    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
-    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
-    await channel.send(embed=logoutput)
-
 @bot.command()
 async def fullwhois (message, fullwhois_domain):
     #send "please wait message"
@@ -491,9 +477,20 @@ async def status (message):
     embed.add_field(name="Errors", value="No errors :white_check_mark: ", inline=False)
     embed.set_footer(text=config["Embeds"]["template"]["footer"])
     await message.send(embed=embed)
+    logoutput=discord.Embed(title=str(message.author.name) + " used the ?status command!", color=0x83ff61)
+    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+    logoutput.set_thumbnail(url=str(message.author.avatar_url))
+    logoutput.add_field(name="Command", value="?status", inline=False)
+    logoutput.add_field(name="User", value=str(message.author), inline=True)
+    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+    logoutput.add_field(name="User Input", value="status", inline=True)
+    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
 
 
-bot.run(config["Bot_config"]["Main_Bot_Token"])
+bot.run(config["Bot_config"]["Test_Bot_Token"])
 
 
 

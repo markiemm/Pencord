@@ -542,7 +542,7 @@ async def status (message):
     logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
 
 
-bot.run(config["Bot_config"]["Test_Bot_Token"])
+bot.run(config["Bot_config"]["Main_Bot_Token"])
 
 
 

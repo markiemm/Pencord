@@ -3,12 +3,12 @@
         "Bot_prefix": "?",
         "Test_Bot_Token": "ODY0NTY1NzM4NjQ2Nzk4Mzkw.YO3Tlg.4LosUOAetT6HzFsM0rrxmumz0gw",
         "Main_Bot_Token": "ODYyNzY4MzUxMTA0ODYwMjA2.YOdJpA.b6gaTC3O7qmkRbd_mTTpAJ6vEVQ",
-        "Version": "2.2.2"
+        "Version": "2.2.5"
     },
 
     "Api_keys": {
         "promptapi_api_key": "aGWoRD944aGQtOC5qycXlllalonv8l6f",
-        "busters_api": "99da9523cb284411fcb25aad4700a6cd"
+        "IP_stack": "99da9523cb284411fcb25aad4700a6cd"
     },
     
     "Embeds": {

@@ -19,6 +19,40 @@ import re
 import ipaddress
 import random
 from discord.ext.commands import Bot
+import timeit
+
+##uptime
+
+BotStartTime = str(datetime.datetime.now())
+def uptime():
+    execution_time = datetime.datetime.now().replace(microsecond=0) - BotStartTime.replace(microsecond=0)
+
+    print(execution_time.seconds)
+
+    # Helper vars:
+    MINUTE  = 60
+    HOUR    = MINUTE * 60
+    DAY     = HOUR * 24
+
+    # Get the days, hours, etc:
+    days    = int( execution_time.seconds / DAY )
+    hours   = int( ( execution_time.seconds % DAY ) / HOUR )
+    minutes = int( ( execution_time.seconds % HOUR ) / MINUTE )
+    seconds = int( execution_time.seconds % MINUTE )
+
+    # Build up the pretty string (like this: "N days, N hours, N minutes, N seconds")
+    string = ""
+    if days > 0:
+        string += str(days) + " " + (days == 1 and "day" or "days" )
+    if len(string) > 0 or hours > 0:
+        string += str(hours) + " " + (hours == 1 and "hour\n" or "hours\n" )
+    if len(string) > 0 or minutes > 0:
+        string += str(minutes) + " " + (minutes == 1 and "minute\n" or "minutes\n" )
+    string += str(seconds) + " " + (seconds == 1 and "second\n" or "seconds\n" )
+
+    return string;
+
+
 
 #load config
 if not os.path.isfile("config.json"):
@@ -523,7 +557,8 @@ async def status (message):
     embed=discord.Embed(title="Pencord Status", description="Here is the status for Pencord:", color=0x0088ff)
     embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
     embed.add_field(name="servers", value=len(bot.guilds), inline=True)
-    embed.add_field(name="Uptime", value=datetime.datetime.now().replace(microsecond=0) - BotStartTime.replace(microsecond=0), inline=True)
+    #embed.add_field(name="Uptime", value=datetime.datetime.now().replace(microsecond=0) - BotStartTime.replace(microsecond=0), inline=True)
+    embed.add_field(name="Uptime", value=uptime(), inline=True)
     embed.add_field(name="Version", value=config["Bot_config"]["Version"], inline=True)
     embed.add_field(name="System Health", value=":white_check_mark: ", inline=True)
     embed.add_field(name="Errors", value="No errors :white_check_mark: ", inline=False)
@@ -542,7 +577,8 @@ async def status (message):
     logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
 
 
-bot.run(config["Bot_config"]["Main_Bot_Token"])
+
+bot.run(config["Bot_config"]["Test_Bot_Token"])
 
 
 

@@ -897,7 +897,7 @@ async def block (message, domain_IP_input):
 
 
 
-bot.run(config["Bot_config"]["Test_Bot_Token"])
+bot.run(config["Bot_config"]["Main_Bot_Token"])
 
 
 

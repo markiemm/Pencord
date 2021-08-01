@@ -27,8 +27,6 @@ BotStartTime = str(datetime.datetime.now())
 def uptime():
     execution_time = datetime.datetime.now().replace(microsecond=0) - BotStartTime.replace(microsecond=0)
 
-    print(execution_time.seconds)
-
     # Helper vars:
     MINUTE  = 60
     HOUR    = MINUTE * 60
@@ -61,6 +59,14 @@ else:
     with open("config.json") as file:
         config = json.load(file)
 print("loaded config")
+
+#load blacklist
+if not os.path.isfile("blacklist.json"):
+    sys.exit("'blacklist.json' not found!.")
+else:
+    with open("blacklist.json") as file:
+        blacklist = json.load(file)
+print("loaded blacklist")
 
 
 bot = commands.Bot(command_prefix=config["Bot_config"]["Bot_prefix"])
@@ -143,6 +149,54 @@ async def whois(message, whois_domain):
     #     await bot.http.delete_message(channel_id_whois, message_id_whois)
     #     return
 
+    #checks to see if the domain is in the blacklist
+    if whois_user_input_sanitize_domain!=None:    
+        if whois_user_input_sanitize_domain.group() in blacklist["domain"]:
+            embed=discord.Embed(title="Sorry, " + whois_user_input_sanitize_domain.group() + " is blacklisted from Pencord.", color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+            await bot.http.delete_message(channel_id_whois, message_id_whois)
+            #send log data
+            channel = bot.get_channel(864566639323906078)
+            logoutput=discord.Embed(title=str(message.author.name) + " used the ?whois command on a blacklisted domain!", color=0xf40101)
+            logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+            logoutput.set_thumbnail(url=str(message.author.avatar_url))
+            logoutput.add_field(name="Command", value="?whois", inline=False)
+            logoutput.add_field(name="User", value=str(message.author), inline=True)
+            logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+            logoutput.add_field(name="User Input", value=str(whois_domain), inline=True)
+            logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+            logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+            logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+            logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+            await channel.send(embed=logoutput)
+            return
+
+    if whois_user_input_sanitize_IP!=None:
+        if whois_user_input_sanitize_IP.group() in blacklist["ip"]:
+            embed=discord.Embed(title="Sorry, " + whois_user_input_sanitize_IP.group() + " is blacklisted from Pencord.", color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+            await bot.http.delete_message(channel_id_whois, message_id_whois)
+            #send log data
+            channel = bot.get_channel(864566639323906078)
+            logoutput=discord.Embed(title=str(message.author.name) + " used the ?whois command on a blacklisted IP!", color=0xf40101)
+            logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+            logoutput.set_thumbnail(url=str(message.author.avatar_url))
+            logoutput.add_field(name="Command", value="?whois", inline=False)
+            logoutput.add_field(name="User", value=str(message.author), inline=True)
+            logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+            logoutput.add_field(name="User Input", value=str(whois_domain), inline=True)
+            logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+            logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+            logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+            logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+            await channel.send(embed=logoutput)
+            return
 
     if whois_user_input_sanitize_IP!=None:
         raw_fullwhois_api = requests.get("http://api.ipstack.com/" + whois_user_input_sanitize_IP.group() + "?access_key=" + config["Api_keys"]["IP_stack"], headers=headers)
@@ -235,6 +289,7 @@ async def changelog (message):
     embed=discord.Embed(title="Changelog (Bot version: " + "V" + config["Bot_config"]["Version"] + ")", color=0x0088ff)
     embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
     embed.set_thumbnail(url="https://img.icons8.com/plasticine/100/000000/approve-and-update.png")
+    embed.add_field(name="V2.2.7", value="- fixed minor & major bugs \n - bot now runs faster\n - Bot won't crash when inputting invalid queries\n - Added a domain blacklist", inline=False)
     embed.add_field(name="V2.2.5", value="- fixed minor bugs \n - added new error messages \n", inline=False)
     embed.add_field(name="V2.2.2", value="- Added a status section \n- Code Optimisations.", inline=False)
     embed.add_field(name="V2.2.0", value="- Added user friendly error messages. \n - Minor bug fixes \n - RegEx integration", inline=False)
@@ -322,37 +377,94 @@ async def domainlist (message, sublist_responce):
     #get channel id
     channel_id_domainlist = message.channel.id
 
-    sublist_output = os.popen("pdlist " + sublist_responce)
+
+    sanitized_word_output_domainlist_domain = re.match("([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}",sublist_responce)
+    sanitized_word_output_domainlist_ip = re.match("^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$",sublist_responce)
+    
+    
+
+
+    #checks to see if the domain is in the blacklist
+    if sanitized_word_output_domainlist_domain!=None:    
+        if sanitized_word_output_domainlist_domain.group() in blacklist["domain"]:
+            embed=discord.Embed(title="Sorry, " + sanitized_word_output_domainlist_domain.group() + " is blacklisted from Pencord.", color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+            await bot.http.delete_message(channel_id_domainlist, message_id_domainlist)
+            channel = bot.get_channel(864566639323906078)
+            logoutput=discord.Embed(title=str(message.author.name) + " used the ?domainlist command on a blacklisted domain!", color=0xf40101)
+            logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+            logoutput.set_thumbnail(url=str(message.author.avatar_url))
+            logoutput.add_field(name="Command", value="?domainlist", inline=False)
+            logoutput.add_field(name="User", value=str(message.author), inline=True)
+            logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+            logoutput.add_field(name="User Input", value=str(sublist_responce), inline=True)
+            logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+            logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+            logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+            logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+            await channel.send(embed=logoutput)
+            return
+
+    if sanitized_word_output_domainlist_ip!=None:
+        if sanitized_word_output_domainlist_ip.group() in blacklist["ip"]:
+            embed=discord.Embed(title="Sorry, " + sanitized_word_output_domainlist_ip.group() + " is blacklisted from Pencord.", color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+            await bot.http.delete_message(channel_id_domainlist, message_id_domainlist)
+            channel = bot.get_channel(864566639323906078)
+            logoutput=discord.Embed(title=str(message.author.name) + " used the ?domainlist command on a blacklisted IP!", color=0xf40101)
+            logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+            logoutput.set_thumbnail(url=str(message.author.avatar_url))
+            logoutput.add_field(name="Command", value="?domainlist", inline=False)
+            logoutput.add_field(name="User", value=str(message.author), inline=True)
+            logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+            logoutput.add_field(name="User Input", value=str(sublist_responce), inline=True)
+            logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+            logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+            logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+            logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+            await channel.send(embed=logoutput)
+            return
+
 
     try:
-        #check if it's an IP
-        sanitized_word_output_domainlist = re.search("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",sublist_responce).group()
-        embed=discord.Embed(title="OOPS!", description="```This command only works with a domain name```", color=0xf40101)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-        embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
-        await message.channel.send(embed=embed)
-        await bot.http.delete_message(channel_id_domainlist, message_id_domainlist)
-        return
-    except:
-        #check if it's a domain
-        sanitized_word_output_domainlist = re.search("([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}",sublist_responce).group()
+        if sanitized_word_output_domainlist_domain!=None:
+            sublist_output = os.popen("pdlist " + sanitized_word_output_domainlist_domain.group())
+            embed=discord.Embed(title="related domains for " + sanitized_word_output_domainlist_domain.group(), description=sublist_output.read()[564:], color=0x83ff61)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://image.flaticon.com/icons/png/512/1490/1490342.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
 
+        if sanitized_word_output_domainlist_ip!=None:
+            embed=discord.Embed(title="OOPS!", description="```This command only works with a domain name```", color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
 
-    try:
-        embed=discord.Embed(title="subdomains for " + sanitized_word_output_domainlist, description=sublist_output.read()[564:], color=0x83ff61)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-        embed.set_thumbnail(url="https://image.flaticon.com/icons/png/512/1490/1490342.png")
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
-        await message.channel.send(embed=embed)
-        
+        else:
+            embed=discord.Embed(title="Looks like that domain does not exist, please enter a valid domain.", color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+            await bot.http.delete_message(channel_id_domainlist, message_id_domainlist)
+            return
+            
+
     except:
         embed=discord.Embed(title="OOPS!", description="```" + "Sorry, there was an error. It could be that " + sublist_responce + " has too many related domains to be listed here." + "```", color=0xf40101)
         embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
         embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
         embed.set_footer(text=config["Embeds"]["template"]["footer"])
         await message.channel.send(embed=embed)
-
+        
     await bot.http.delete_message(channel_id_domainlist, message_id_domainlist)
     channel = bot.get_channel(864566639323906078)
     logoutput=discord.Embed(title=str(message.author.name) + " used the ?domainlist command!", color=0x83ff61)
@@ -390,11 +502,60 @@ async def fullwhois (message, fullwhois_domain):
     fullwhois_user_input_sanitize_IP = re.match('^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$', fullwhois_domain)
 
 
+    #checks to see if the domain is in the blacklist
+    if fullwhois_user_input_sanitize_domain!=None:    
+        if fullwhois_user_input_sanitize_domain.group() in blacklist["domain"]:
+            embed=discord.Embed(title="Sorry, " + fullwhois_user_input_sanitize_domain.group() + " is blacklisted from Pencord.", color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+            await bot.http.delete_message(channel_id_fullwhois, message_id_fullwhois)
+            #send log data
+            channel = bot.get_channel(864566639323906078)
+            logoutput=discord.Embed(title=str(message.author.name) + " used the ?fullwhois command on a blacklisted domain!", color=0xf40101)
+            logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+            logoutput.set_thumbnail(url=str(message.author.avatar_url))
+            logoutput.add_field(name="Command", value="?fullwhois", inline=False)
+            logoutput.add_field(name="User", value=str(message.author), inline=True)
+            logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+            logoutput.add_field(name="User Input", value=str(fullwhois_domain), inline=True)
+            logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+            logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+            logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+            logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+            await channel.send(embed=logoutput)
+            return
+
+    if fullwhois_user_input_sanitize_IP!=None:
+        if fullwhois_user_input_sanitize_IP.group() in blacklist["ip"]:
+            embed=discord.Embed(title="Sorry, " + fullwhois_user_input_sanitize_IP.group() + " is blacklisted from Pencord.", color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+            await bot.http.delete_message(channel_id_fullwhois, message_id_fullwhois)
+            channel = bot.get_channel(864566639323906078)
+            logoutput=discord.Embed(title=str(message.author.name) + " used the ?fullwhois command on a blacklisted IP!", color=0xf40101)
+            logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+            logoutput.set_thumbnail(url=str(message.author.avatar_url))
+            logoutput.add_field(name="Command", value="?fullwhois", inline=False)
+            logoutput.add_field(name="User", value=str(message.author), inline=True)
+            logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+            logoutput.add_field(name="User Input", value=str(fullwhois_domain), inline=True)
+            logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+            logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+            logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+            logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+            await channel.send(embed=logoutput)
+            return
+
+
 
     if fullwhois_user_input_sanitize_IP!=None:
         raw_fullwhois_api = requests.get("http://api.ipstack.com/" + fullwhois_user_input_sanitize_IP.group() + "?access_key=" + config["Api_keys"]["IP_stack"], headers=headers)
         
-        embed=discord.Embed(title="Here is the full whois for " + fullwhois_user_input_sanitize_IP, color=0x83ff61)
+        embed=discord.Embed(title="Here is the full whois for " + fullwhois_user_input_sanitize_IP.group(), color=0x83ff61)
         embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
         embed.set_thumbnail(url="https://media.discordapp.net/attachments/866002022464487444/866410785936506880/1200px-VisualEditor_-_Icon_-_Open-book-2.svg.png?width=580&height=580")
         embed.add_field(name="Data for " + str(fullwhois_user_input_sanitize_IP.group()), value=str(raw_fullwhois_api.json()).replace(",", "\n").replace("'", "").replace("[{", "").replace("{", "").replace("}}", "").replace("}]", "").replace("_", " "), inline=False)
@@ -403,7 +564,6 @@ async def fullwhois (message, fullwhois_domain):
         
         await message.send(embed=embed)
         
-    
     elif fullwhois_user_input_sanitize_domain!=None:
 
         api_fullwhois_promptapi_out = requests.get("https://api.promptapi.com/whois/query?domain=" + fullwhois_user_input_sanitize_domain.group(), headers=headers)
@@ -417,8 +577,7 @@ async def fullwhois (message, fullwhois_domain):
             await message.channel.send(embed=embed)
             await bot.http.delete_message(channel_id_fullwhois, message_id_fullwhois)
             return
-
-        
+ 
         embed=discord.Embed(title="Here is the full whois for " + fullwhois_user_input_sanitize_domain.group(), color=0x83ff61)
         embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
         embed.set_thumbnail(url="https://media.discordapp.net/attachments/866002022464487444/866410785936506880/1200px-VisualEditor_-_Icon_-_Open-book-2.svg.png?width=580&height=580")
@@ -433,8 +592,6 @@ async def fullwhois (message, fullwhois_domain):
         embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
         embed.set_footer(text=config["Embeds"]["template"]["footer"])
         await message.channel.send(embed=embed)
-
-    
 
     await bot.http.delete_message(channel_id_fullwhois, message_id_fullwhois)
 
@@ -463,26 +620,90 @@ async def webping (message, webping_responce):
     #get channel id
     channel_id_webping = message.channel.id
 
-    try:
-        sanitized_word_output_webping = re.search('^((\*)|((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|((\*\.)?([a-zA-Z0-9-]+\.){0,5}[a-zA-Z0-9-][a-zA-Z0-9-]+\.[a-zA-Z]{2,63}?))$', str(webping_responce)).group()
-    except:
-        sanitized_word_output_webping = re.search('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', str(webping_responce)).group()
+    sanitized_word_output_webping_ip = re.search('^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$', webping_responce)
 
-    output_ping = os.popen("ping -c 3 " + sanitized_word_output_webping)
-    if output_ping.read() == "":
-        embed=discord.Embed(title="ping for " + sanitized_word_output_webping, description="I don't seem to know this domain. Is it a valid domain?", color=0xf40101)
+    sanitized_word_output_webping_domain = re.search('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', webping_responce)
+
+
+    if sanitized_word_output_webping_domain!=None:    
+        if sanitized_word_output_webping_domain.group() in blacklist["domain"]:
+            embed=discord.Embed(title="Sorry, " + sanitized_word_output_webping_domain.group() + " is blacklisted from Pencord.", color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+            await bot.http.delete_message(channel_id_webping, message_id_webping)
+            channel = bot.get_channel(864566639323906078)
+            logoutput=discord.Embed(title=str(message.author.name) + " used the ?webping command on a blacklisted domain!", color=0xf40101)
+            logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+            logoutput.set_thumbnail(url=str(message.author.avatar_url))
+            logoutput.add_field(name="Command", value="?webping", inline=False)
+            logoutput.add_field(name="User", value=str(message.author), inline=True)
+            logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+            logoutput.add_field(name="User Input", value=str(webping_responce), inline=True)
+            logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+            logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+            logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+            logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+            await channel.send(embed=logoutput)
+            return
+
+    if sanitized_word_output_webping_ip!=None:
+        if sanitized_word_output_webping_ip.group() in blacklist["ip"]:
+            embed=discord.Embed(title="Sorry, " + sanitized_word_output_webping_ip.group() + " is blacklisted from Pencord.", color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+            await bot.http.delete_message(channel_id_webping, message_id_webping)
+            channel = bot.get_channel(864566639323906078)
+            logoutput=discord.Embed(title=str(message.author.name) + " used the ?webping command on a blacklisted IP!", color=0xf40101)
+            logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+            logoutput.set_thumbnail(url=str(message.author.avatar_url))
+            logoutput.add_field(name="Command", value="?webping", inline=False)
+            logoutput.add_field(name="User", value=str(message.author), inline=True)
+            logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+            logoutput.add_field(name="User Input", value=str(webping_responce), inline=True)
+            logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+            logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+            logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+            logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+            await channel.send(embed=logoutput)
+            return
+
+
+    try:
+        if sanitized_word_output_webping_domain!=None:
+            output_ping = os.popen("ping -c 3 " + sanitized_word_output_webping_domain.group())
+            embed=discord.Embed(title="Output for " + sanitized_word_output_webping_domain.group(), description=output_ping.read(), color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+
+        if sanitized_word_output_webping_ip!=None:
+            output_ping = os.popen("ping -c 3 " + sanitized_word_output_webping_ip.group())
+            embed=discord.Embed(title="Output for " + sanitized_word_output_webping_ip.group(), description=output_ping.read(), color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+        else:
+            embed=discord.Embed(title="Looks like you did not enter a domain or IP address", color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+            await bot.http.delete_message(channel_id_webping, message_id_webping)
+            return
+
+            
+    except:
+        embed=discord.Embed(title="Output for " + sanitized_word_output_webping_ip.group(), description="I don't seem to know this domain. Is it a valid domain?", color=0xf40101)
         embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
         embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
         embed.set_footer(text=config["Embeds"]["template"]["footer"])
-        await message.channel.send(embed=embed)
-    else:
-        output_ping = os.popen("ping -c 3 " + sanitized_word_output_webping)
-        
-        embed=discord.Embed(title="ping for " + sanitized_word_output_webping, description=output_ping.read(), color=0xf40101)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-        embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
-        await message.channel.send(embed=embed)
+        await message.channel.send(embed=embed) 
 
     await bot.http.delete_message(channel_id_webping, message_id_webping)
 
@@ -512,9 +733,66 @@ async def dns (message, dns_input):
     #get channel id
     channel_id_dnslookup = message.channel.id
 
-    try:
-        #check if it's an IP
-        sanitized_word_output_dnsenum = re.search("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",dns_input).group()
+    sanitized_word_output_dnsenum_ip = re.match("^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$",dns_input)
+
+    sanitized_word_output_dnsenum_domain = re.match('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', dns_input)
+
+    if sanitized_word_output_dnsenum_domain!=None:    
+        if sanitized_word_output_dnsenum_domain.group() in blacklist["domain"]:
+            embed=discord.Embed(title="Sorry, " + sanitized_word_output_dnsenum_domain.group() + " is blacklisted from Pencord.", color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+            await bot.http.delete_message(channel_id_dnslookup, message_id_dnslookup)
+            channel = bot.get_channel(864566639323906078)
+            logoutput=discord.Embed(title=str(message.author.name) + " used the ?dns command on a blacklisted domain!", color=0xf40101)
+            logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+            logoutput.set_thumbnail(url=str(message.author.avatar_url))
+            logoutput.add_field(name="Command", value="?dns", inline=False)
+            logoutput.add_field(name="User", value=str(message.author), inline=True)
+            logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+            logoutput.add_field(name="User Input", value=str(dns_input), inline=True)
+            logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+            logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+            logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+            logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+            await channel.send(embed=logoutput)
+            return
+
+    if sanitized_word_output_dnsenum_ip!=None:
+        if sanitized_word_output_dnsenum_ip.group() in blacklist["ip"]:
+            embed=discord.Embed(title="Sorry, " + sanitized_word_output_dnsenum_ip.group() + " is blacklisted from Pencord.", color=0xf40101)
+            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            await message.channel.send(embed=embed)
+            await bot.http.delete_message(channel_id_dnslookup, message_id_dnslookup)
+            channel = bot.get_channel(864566639323906078)
+            logoutput=discord.Embed(title=str(message.author.name) + " used the ?dns command on a blacklisted IP!", color=0xf40101)
+            logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+            logoutput.set_thumbnail(url=str(message.author.avatar_url))
+            logoutput.add_field(name="Command", value="?dns", inline=False)
+            logoutput.add_field(name="User", value=str(message.author), inline=True)
+            logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+            logoutput.add_field(name="User Input", value=str(dns_input), inline=True)
+            logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+            logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+            logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+            logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+            await channel.send(embed=logoutput)
+            return
+    
+    if sanitized_word_output_dnsenum_domain!=None:
+        output_dns = os.popen("dnsenum " + str(sanitized_word_output_dnsenum_domain.group()))
+        remove_odd_shit = str(output_dns.read().replace("[1;34m", "").replace("[0m", "")).replace("[1;31m", "")[50:]
+        embed=discord.Embed(title="Grabbing DNS records for " + sanitized_word_output_dnsenum_domain.group(), description=remove_odd_shit + "\n**Note: You should not rely on this feature and conduct your own test as this feature may not display all DNS records**", color=0xf40101)
+        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
+        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        await message.channel.send(embed=embed)
+
+    elif sanitized_word_output_dnsenum_ip!=None:
         embed=discord.Embed(title="OOPS!", description="```This command only works with a domain name```", color=0xf40101)
         embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
         embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
@@ -522,19 +800,14 @@ async def dns (message, dns_input):
         await message.channel.send(embed=embed)
         await bot.http.delete_message(channel_id_dnslookup, message_id_dnslookup)
         return
-    except:
-        #check if it's a domain
-        sanitized_word_output_dnsenum = re.search("([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}",dns_input).group()
-    
-    output_dns = os.popen("dnsenum " + str(sanitized_word_output_dnsenum))
 
-    remove_odd_shit = str(output_dns.read().replace("[1;34m", "").replace("[0m", "")).replace("[1;31m", "")[50:]
+    else:
+        embed=discord.Embed(title="Please enter a valid domain", color=0xf40101)
+        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        await message.channel.send(embed=embed)
 
-    embed=discord.Embed(title="Grabbing DNS records for " + sanitized_word_output_dnsenum, description=remove_odd_shit + "\n**Note: You should not rely on this feature and conduct your own test as this feature may not display all DNS records**", color=0xf40101)
-    embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-    embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
-    embed.set_footer(text=config["Embeds"]["template"]["footer"])
-    await message.channel.send(embed=embed)
 
     await bot.http.delete_message(channel_id_dnslookup, message_id_dnslookup)
 
@@ -564,6 +837,7 @@ async def status (message):
     embed.add_field(name="Errors", value="No errors :white_check_mark: ", inline=False)
     embed.set_footer(text=config["Embeds"]["template"]["footer"])
     await message.send(embed=embed)
+    channel = bot.get_channel(864566639323906078)
     logoutput=discord.Embed(title=str(message.author.name) + " used the ?status command!", color=0x83ff61)
     logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
     logoutput.set_thumbnail(url=str(message.author.avatar_url))
@@ -575,10 +849,55 @@ async def status (message):
     logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
     logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
     logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+    await channel.send(embed=logoutput)
+
+
+@bot.command()
+async def block (message, domain_IP_input):
+    #send "please wait message"
+    please_wait_message = await message.channel.send(embed=please_wait)
+
+    #get message id
+    message_id_dnslookup = please_wait_message.id
+
+    #get channel id
+    channel_id_dnslookup = message.channel.id
+
+    sanitized_word_output_block_ip = re.match("^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$",domain_IP_input)
+
+    sanitized_word_output_block_domain = re.match('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', domain_IP_input)
+
+    
+    if sanitized_word_output_block_domain!=None:
+        if str(message.author.id) in config["Permissions"]["owner"]:
+            await message.channel.send("You have permission")
+            
+
+        else:
+            await message.channel.send(":red_circle: **You do not have permission!**")
+        
+
+    elif sanitized_word_output_block_ip!=None:
+        if message.author.id in config["Permissions"]["owner"]:
+            await message.channel.send("You have permission")
+
+        else:
+            await message.channel.send(":red_circle: ***You do not have permission!***")
+        
+
+    else:
+        embed=discord.Embed(title="Please enter a valid domain or IP", color=0xf40101)
+        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        await message.channel.send(embed=embed)
+
+
+    await bot.http.delete_message(channel_id_dnslookup, message_id_dnslookup)
 
 
 
-bot.run(config["Bot_config"]["Main_Bot_Token"])
+bot.run(config["Bot_config"]["Test_Bot_Token"])
 
 
 

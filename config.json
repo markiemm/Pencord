@@ -3,7 +3,7 @@
         "Bot_prefix": "?",
         "Test_Bot_Token": "ODY0NTY1NzM4NjQ2Nzk4Mzkw.YO3Tlg.4LosUOAetT6HzFsM0rrxmumz0gw",
         "Main_Bot_Token": "ODYyNzY4MzUxMTA0ODYwMjA2.YOdJpA.b6gaTC3O7qmkRbd_mTTpAJ6vEVQ",
-        "Version": "2.2.5"
+        "Version": "2.2.7"
     },
 
     "Api_keys": {
@@ -36,5 +36,9 @@
             "channel_ID" : "864566639323906078"
 
         }
+    },
+    "Permissions": {
+        "owner" : ["624633250232401961"]
     }
+
 }

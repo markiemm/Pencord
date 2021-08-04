@@ -19,11 +19,6 @@
             "icon_url": "https://cdn.discordapp.com/attachments/866002022464487444/866003896429314048/DB-Icons-Pen-Testing.png"
         },
 
-        "status": {
-            "Success": ""
-
-        },
-
         "Please_wait": {
             "title" : "Please wait...",
             "description": "```Processing your request```",

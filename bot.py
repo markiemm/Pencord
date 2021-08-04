@@ -20,8 +20,12 @@ import ipaddress
 import random
 from discord.ext.commands import Bot
 import timeit
+import redis
 
-##uptime
+#redis database
+
+redis_connect = redis.Redis(host='176.9.158.150', port=29992, charset="utf-8", decode_responses=True, db=0, password='$kW9oZ5WmGn4$9sTzZXge2DA&AHD6UVw')
+
 
 BotStartTime = str(datetime.datetime.now())
 def uptime():
@@ -57,7 +61,7 @@ if not os.path.isfile("config.json"):
     sys.exit("'config.json' not found!.")
 else:
     with open("config.json") as file:
-        config = json.load(file)
+        confige = json.load(file)
 print("loaded config")
 
 #load blacklist
@@ -65,17 +69,17 @@ if not os.path.isfile("blacklist.json"):
     sys.exit("'blacklist.json' not found!.")
 else:
     with open("blacklist.json") as file:
-        blacklist = json.load(file)
+        blackliste = json.load(file)
 print("loaded blacklist")
 
 
-bot = commands.Bot(command_prefix=config["Bot_config"]["Bot_prefix"])
+bot = commands.Bot(command_prefix=redis_connect.hget("bot_config", "Bot_prefix"))
 
 BotStartTime = datetime.datetime.now()
 
 #variables
 headers = {
-            'apikey': config["Api_keys"]["promptapi_api_key"],
+            'apikey': redis_connect.hget("Api_keys", "promptapi_api_key"),
             }
 
 
@@ -86,34 +90,33 @@ async def on_ready():
     print(f"Python version: {platform.python_version()}")
     print(f"Running on: {platform.system()} {platform.release()} ({os.name})")
     print("-------------------")
-    await bot.change_presence(activity=discord.Game(config["Bot_config"]["Bot_prefix"] + "help"))
+    await bot.change_presence(activity=discord.Game(redis_connect.hget("bot_config", "Bot_prefix") + "help"))
     
 
 
 bot.remove_command("help")
 
 #please wait presets
-please_wait=discord.Embed(title=config["Embeds"]["Please_wait"]["title"], description=config["Embeds"]["Please_wait"]["description"], color=0xff9029)
-please_wait.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-please_wait.set_thumbnail(url=config["Embeds"]["Please_wait"]["thumbnail"])
-please_wait.set_footer(text=config["Embeds"]["template"]["footer"])
+please_wait=discord.Embed(title=redis_connect.hget("embed_please-wait", "title"), description=redis_connect.hget("embed_please-wait", "description"), color=0xff9029)
+please_wait.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
+please_wait.set_thumbnail(url=redis_connect.hget("embed_please-wait", "thumbnail"))
+please_wait.set_footer(text=redis_connect.hget("embed_template", "footer"))
 
 
 @bot.command()
 async def help (message):
     embed=discord.Embed(title="How to use Pencord Discord bot", description="All the commands", color=0x0088ff)
-    embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-    embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "help", value="Display all of the commands.", inline=True)
-    embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "whois", value="Display basic whois data for a domain or IP.", inline=True)
-    embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "fullwhois", value="Display full whois data with everything displayed.", inline=True)
-    embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "bincheck", value="Display the status of a Bank Identification Number.", inline=True)
-    embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "domainlist", value="Display related domains about the target domain.", inline=True)
-    embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "webping", value="Ping a website.", inline=True)
-    embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "ping", value="Responds back the time it takes to recieve and send a message.", inline=True)
-    embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "dns", value="Displays the DNS records and its IP's **Note: You should not rely on this feature and conduct your own test as this feature may not display all DNS records**", inline=True)
-    embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "changelog", value="View the changelog of Pencord.", inline=False)
-    embed.add_field(name=config["Bot_config"]["Bot_prefix"] + "status", value="View the status of Pencord.", inline=False)
-    embed.set_footer(text=config["Embeds"]["template"]["footer"])
+    embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
+    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "help", value="Display all of the commands.", inline=True)
+    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "whois", value="Display whois data for a domain or IP.", inline=True)
+    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "bincheck", value="Display the status of a Bank Identification Number.", inline=True)
+    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "domainlist", value="Display related domains about the target domain.", inline=True)
+    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "webping", value="Ping a website.", inline=True)
+    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "ping", value="Responds back the time it takes to recieve and send a message.", inline=True)
+    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "dns", value="Displays the DNS records and its IP's **Note: You should not rely on this feature and conduct your own test as this feature may not display all DNS records**", inline=True)
+    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "changelog", value="View the changelog of Pencord.", inline=False)
+    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "status", value="View the status of Pencord.", inline=False)
+    embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
     await message.channel.send(embed=embed)
     channel = bot.get_channel(864566639323906078)
     logoutput=discord.Embed(title=str(message.author.name) + " used the ?help command!", color=0x83ff61)
@@ -141,7 +144,7 @@ async def whois(message, whois_domain):
     channel_id_whois = message.channel.id
 
     #sanitize the user input
-    whois_user_input_sanitize_domain = re.match('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', whois_domain)
+    whois_user_input_sanitize_domain = re.match('([0-9a-z-]{2,}\.[0-9a-z-]{2,3}\.[0-9a-z-]{2,3}|[0-9a-z-]{2,}\.[0-9a-z-]{2,7})$', whois_domain)
     whois_user_input_sanitize_IP = re.match('^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$', whois_domain)
 
     # if whois_user_input_sanitize_domain.group() in ["pornhub.com","brazzars.com", "xvideos.com", "xhamster.com", "xxx.com", "onlyfans.com", "XNXX.com", "youporn.com", "porn.com"]:
@@ -151,11 +154,11 @@ async def whois(message, whois_domain):
 
     #checks to see if the domain is in the blacklist
     if whois_user_input_sanitize_domain!=None:    
-        if whois_user_input_sanitize_domain.group() in blacklist["domain"]:
+        if whois_user_input_sanitize_domain.group() in redis_connect.hget("blacklist", "domain"):
             embed=discord.Embed(title="Sorry, " + whois_user_input_sanitize_domain.group() + " is blacklisted from Pencord.", color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
             embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
             await message.channel.send(embed=embed)
             await bot.http.delete_message(channel_id_whois, message_id_whois)
             #send log data
@@ -175,11 +178,11 @@ async def whois(message, whois_domain):
             return
 
     if whois_user_input_sanitize_IP!=None:
-        if whois_user_input_sanitize_IP.group() in blacklist["ip"]:
+        if whois_user_input_sanitize_IP.group() in redis_connect.hget("blacklist", "ip"):
             embed=discord.Embed(title="Sorry, " + whois_user_input_sanitize_IP.group() + " is blacklisted from Pencord.", color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
             embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
             await message.channel.send(embed=embed)
             await bot.http.delete_message(channel_id_whois, message_id_whois)
             #send log data
@@ -199,70 +202,27 @@ async def whois(message, whois_domain):
             return
 
     if whois_user_input_sanitize_IP!=None:
-        raw_fullwhois_api = requests.get("http://api.ipstack.com/" + whois_user_input_sanitize_IP.group() + "?access_key=" + config["Api_keys"]["IP_stack"], headers=headers)
-        embed=discord.Embed(title="Basic whois data for IP's is not available", description="Here is the full Whois Data", color=0x83ff61)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        fullwhois_output = os.popen("whois -H " + whois_user_input_sanitize_IP.group())
+        embed=discord.Embed(title="Whois for " + whois_user_input_sanitize_IP.group(), description=fullwhois_output.read()[:4095].replace("\n\n", "\n").replace("\n\n\n", "\n").replace("\n\n\n\n", "\n").replace("\n\n\n\n\n", "\n").replace("\n\n\n\n\n\n", "\n").replace("#", ""), color=0x83ff61)
+        embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
         embed.set_thumbnail(url="https://media.discordapp.net/attachments/866002022464487444/866410785936506880/1200px-VisualEditor_-_Icon_-_Open-book-2.svg.png?width=580&height=580")
-        embed.add_field(name="Data for " + str(whois_user_input_sanitize_IP.group()), value=str(raw_fullwhois_api.json()).replace(",", "\n").replace("'", "").replace("[{", "").replace("{", "").replace("}}", "").replace("}]", "").replace("_", " "), inline=False)
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
         await message.send(embed=embed)
         
     
     elif whois_user_input_sanitize_domain!=None:
-
-        api_whois_promptapi_out = requests.get("https://api.promptapi.com/whois/query?domain=" + whois_user_input_sanitize_domain.group(), headers=headers)
-        api_whois_ipstack_out = requests.get("http://api.ipstack.com/" + whois_user_input_sanitize_domain.group() + "?access_key=" + config["Api_keys"]["IP_stack"], headers=headers)
-
-        if api_whois_ipstack_out.json()["country_code"] == None:
-            embed=discord.Embed(title="Looks like that domain does not exist, please enter a valid domain.", color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-            embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
-            await message.channel.send(embed=embed)
-            await bot.http.delete_message(channel_id_whois, message_id_whois)
-            return
-
-        
-        embed=discord.Embed(title="Pencord Whois Data for " + whois_user_input_sanitize_domain.group(), description="Here is the basic Whois data for " + whois_user_input_sanitize_domain.group(), color=0x83ff61)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-        embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/866002022464487444/866410785936506880/1200px-VisualEditor_-_Icon_-_Open-book-2.svg.png")
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
-
-        embed.add_field(name="----------------------Location----------------------", value="-----------------------------------------------------", inline=False)
-        embed.add_field(name="Country name", value=api_whois_ipstack_out.json()["country_name"], inline=True)
-        embed.add_field(name="Continent name", value=api_whois_ipstack_out.json()["continent_name"], inline=True)
-        embed.add_field(name="Region name", value=api_whois_ipstack_out.json()["region_name"], inline=True)
-        embed.add_field(name="City", value=api_whois_ipstack_out.json()["city"], inline=True)
-        embed.add_field(name="Zip Code", value=api_whois_ipstack_out.json()["zip"], inline=True)
-        embed.add_field(name="Capital", value=api_whois_ipstack_out.json()["location"]["capital"], inline=True)
-
-        embed.add_field(name="latitude", value=api_whois_ipstack_out.json()["latitude"], inline=True)
-        embed.add_field(name="longitude", value=api_whois_ipstack_out.json()["longitude"], inline=True)
-
-        embed.add_field(name="----------------------Codes----------------------", value="-------------------------------------------------", inline=False)
-        embed.add_field(name="Country code", value=api_whois_ipstack_out.json()["country_code"], inline=True)
-        embed.add_field(name="Continent code", value=api_whois_ipstack_out.json()["continent_code"], inline=True)
-        embed.add_field(name="Region code", value=api_whois_ipstack_out.json()["region_code"], inline=True)
-        embed.add_field(name="Geoname id", value=api_whois_ipstack_out.json()["location"]["geoname_id"], inline=True)
-        embed.add_field(name="Calling code", value=str(api_whois_ipstack_out.json()["location"]["calling_code"]), inline=True)
-
-        embed.add_field(name="----------------------Status----------------------", value="--------------------------------------------------", inline=False)
-        embed.add_field(name="type", value=api_whois_ipstack_out.json()["type"], inline=True)
-        embed.add_field(name="Is eu", value=str(api_whois_ipstack_out.json()["location"]["is_eu"]), inline=True)
-        
-        embed.add_field(name="----------------------Provider----------------------", value="--------------------------------------------------", inline=False)
-        embed.add_field(name="Domain Provider", value=str(api_whois_promptapi_out.json()["result"]["registrar"]), inline=True)
-        embed.add_field(name="Updated Date", value=str(api_whois_promptapi_out.json()["result"]["updated_date"]), inline=True)
-        embed.add_field(name="Creation Date", value=str(api_whois_promptapi_out.json()["result"]["creation_date"]), inline=True)
-        embed.add_field(name="Expiration date", value=str(api_whois_promptapi_out.json()["result"]["expiration_date"]), inline=True)
-        embed.add_field(name="Emails", value=str(api_whois_promptapi_out.json()["result"]["emails"]), inline=True)
-        await message.channel.send(embed=embed)
+        fullwhois_output = os.popen("whois -H " + whois_user_input_sanitize_domain.group())
+        embed=discord.Embed(title="Whois for " + whois_user_input_sanitize_domain.group(), description=fullwhois_output.read()[:4095].replace("\n\n", "\n").replace("\n\n\n", "\n").replace("\n\n\n\n", "\n").replace("\n\n\n\n\n", "\n").replace("\n\n\n\n\n\n", "\n").replace("#", ""), color=0x83ff61)
+        embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
+        embed.set_thumbnail(url="https://media.discordapp.net/attachments/866002022464487444/866410785936506880/1200px-VisualEditor_-_Icon_-_Open-book-2.svg.png?width=580&height=580")
+        embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
+        await message.send(embed=embed)
 
     else:
         embed=discord.Embed(title="Looks like you did not enter a domain or IP address", color=0xf40101)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
         embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
         await message.channel.send(embed=embed)
 
 
@@ -282,13 +242,14 @@ async def whois(message, whois_domain):
     logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
     logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
-
+#2.3.1
 @bot.command()
 async def changelog (message):
     #send changelog embed
-    embed=discord.Embed(title="Changelog (Bot version: " + "V" + config["Bot_config"]["Version"] + ")", color=0x0088ff)
-    embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+    embed=discord.Embed(title="Changelog (Bot version: " + "V" + redis_connect.hget("bot_config", "Version") + ")", color=0x0088ff)
+    embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
     embed.set_thumbnail(url="https://img.icons8.com/plasticine/100/000000/approve-and-update.png")
+    embed.add_field(name="V2.3.1", value="- backend improvement, Pencord now uses a Redis database \n- Improved Regex filtering\n- Fullwhois and whois is now the same command.\n- Improved Whois\n- Major/minor bug fixes.", inline=False)
     embed.add_field(name="V2.2.7", value="- fixed minor & major bugs \n - bot now runs faster\n - Bot won't crash when inputting invalid queries\n - Added a domain blacklist", inline=False)
     embed.add_field(name="V2.2.5", value="- fixed minor bugs \n - added new error messages \n", inline=False)
     embed.add_field(name="V2.2.2", value="- Added a status section \n- Code Optimisations.", inline=False)
@@ -299,7 +260,7 @@ async def changelog (message):
     embed.add_field(name="V1.1.2", value="- Fixed an vulnerability that allows users to add extra arguments to commands. Thanks to <@180006576428417024> for reporting this.", inline=False)
     embed.add_field(name="V1.1.1", value="- Big update to whois! Added new whois elements data.", inline=False)
     embed.add_field(name="V1.0.1", value="- Added a changelog \n \n - Fixed formatting on cloudflare scan. \n \n - Optimized the code", inline=False)
-    embed.set_footer(text=config["Embeds"]["template"]["footer"])
+    embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
     await message.channel.send(embed=embed)
     channel = bot.get_channel(864566639323906078)
     logoutput=discord.Embed(title=str(message.author.name) + " used the ?changelog command!", color=0x83ff61)
@@ -334,19 +295,19 @@ async def bincheck (message, bincheck_input):
 
     if "message" in ready_output_bincheck:
         embed=discord.Embed(title="Incorrect BIN number", description="```" + bincheck_output.json()["message"] + "```", color=0xf40101)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
         embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/866002022464487444/866427540738801705/credit-card-icon-png-4424.png")
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
         await message.channel.send(embed=embed)
 
     
     else:
         #send responce
         embed=discord.Embed(title="Status for bank identification number", description=bincheck_input, color=0x83ff61)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
         embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/866002022464487444/866427540738801705/credit-card-icon-png-4424.png")
         embed.add_field(name="BIN Status:", value=ready_output_bincheck, inline=True)
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
         await message.channel.send(embed=embed)
 
     await bot.http.delete_message(channel_id_bincheck, message_id_bincheck)
@@ -378,7 +339,7 @@ async def domainlist (message, sublist_responce):
     channel_id_domainlist = message.channel.id
 
 
-    sanitized_word_output_domainlist_domain = re.match("([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}",sublist_responce)
+    sanitized_word_output_domainlist_domain = re.match("([0-9a-z-]{2,}\.[0-9a-z-]{2,3}\.[0-9a-z-]{2,3}|[0-9a-z-]{2,}\.[0-9a-z-]{2,4})$",sublist_responce)
     sanitized_word_output_domainlist_ip = re.match("^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$",sublist_responce)
     
     
@@ -386,11 +347,11 @@ async def domainlist (message, sublist_responce):
 
     #checks to see if the domain is in the blacklist
     if sanitized_word_output_domainlist_domain!=None:    
-        if sanitized_word_output_domainlist_domain.group() in blacklist["domain"]:
+        if sanitized_word_output_domainlist_domain.group() in redis_connect.hget("blacklist", "domain"):
             embed=discord.Embed(title="Sorry, " + sanitized_word_output_domainlist_domain.group() + " is blacklisted from Pencord.", color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
             embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
             await message.channel.send(embed=embed)
             await bot.http.delete_message(channel_id_domainlist, message_id_domainlist)
             channel = bot.get_channel(864566639323906078)
@@ -409,11 +370,11 @@ async def domainlist (message, sublist_responce):
             return
 
     if sanitized_word_output_domainlist_ip!=None:
-        if sanitized_word_output_domainlist_ip.group() in blacklist["ip"]:
+        if sanitized_word_output_domainlist_ip.group() in redis_connect.hget("blacklist", "ip"):
             embed=discord.Embed(title="Sorry, " + sanitized_word_output_domainlist_ip.group() + " is blacklisted from Pencord.", color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
             embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
             await message.channel.send(embed=embed)
             await bot.http.delete_message(channel_id_domainlist, message_id_domainlist)
             channel = bot.get_channel(864566639323906078)
@@ -436,23 +397,23 @@ async def domainlist (message, sublist_responce):
         if sanitized_word_output_domainlist_domain!=None:
             sublist_output = os.popen("pdlist " + sanitized_word_output_domainlist_domain.group())
             embed=discord.Embed(title="related domains for " + sanitized_word_output_domainlist_domain.group(), description=sublist_output.read()[564:], color=0x83ff61)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
             embed.set_thumbnail(url="https://image.flaticon.com/icons/png/512/1490/1490342.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
             await message.channel.send(embed=embed)
 
         if sanitized_word_output_domainlist_ip!=None:
             embed=discord.Embed(title="OOPS!", description="```This command only works with a domain name```", color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
             embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
             await message.channel.send(embed=embed)
 
         else:
             embed=discord.Embed(title="Looks like that domain does not exist, please enter a valid domain.", color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
             embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
             await message.channel.send(embed=embed)
             await bot.http.delete_message(channel_id_domainlist, message_id_domainlist)
             return
@@ -460,9 +421,9 @@ async def domainlist (message, sublist_responce):
 
     except:
         embed=discord.Embed(title="OOPS!", description="```" + "Sorry, there was an error. It could be that " + sublist_responce + " has too many related domains to be listed here." + "```", color=0xf40101)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
         embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
         await message.channel.send(embed=embed)
         
     await bot.http.delete_message(channel_id_domainlist, message_id_domainlist)
@@ -488,126 +449,8 @@ async def ping (message):
     await message.channel.send(content=f"That took {int(ping)}ms")
 
 @bot.command()
-async def fullwhois (message, fullwhois_domain):
-    #send "please wait message"
-    please_wait_message = await message.channel.send(embed=please_wait)
-
-    #get message id
-    message_id_fullwhois = please_wait_message.id
-
-    #get channel id
-    channel_id_fullwhois = message.channel.id
-
-    fullwhois_user_input_sanitize_domain = re.match('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', fullwhois_domain)
-    fullwhois_user_input_sanitize_IP = re.match('^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$', fullwhois_domain)
-
-
-    #checks to see if the domain is in the blacklist
-    if fullwhois_user_input_sanitize_domain!=None:    
-        if fullwhois_user_input_sanitize_domain.group() in blacklist["domain"]:
-            embed=discord.Embed(title="Sorry, " + fullwhois_user_input_sanitize_domain.group() + " is blacklisted from Pencord.", color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
-            await message.channel.send(embed=embed)
-            await bot.http.delete_message(channel_id_fullwhois, message_id_fullwhois)
-            #send log data
-            channel = bot.get_channel(864566639323906078)
-            logoutput=discord.Embed(title=str(message.author.name) + " used the ?fullwhois command on a blacklisted domain!", color=0xf40101)
-            logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
-            logoutput.set_thumbnail(url=str(message.author.avatar_url))
-            logoutput.add_field(name="Command", value="?fullwhois", inline=False)
-            logoutput.add_field(name="User", value=str(message.author), inline=True)
-            logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
-            logoutput.add_field(name="User Input", value=str(fullwhois_domain), inline=True)
-            logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
-            logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
-            logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
-            logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
-            await channel.send(embed=logoutput)
-            return
-
-    if fullwhois_user_input_sanitize_IP!=None:
-        if fullwhois_user_input_sanitize_IP.group() in blacklist["ip"]:
-            embed=discord.Embed(title="Sorry, " + fullwhois_user_input_sanitize_IP.group() + " is blacklisted from Pencord.", color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
-            await message.channel.send(embed=embed)
-            await bot.http.delete_message(channel_id_fullwhois, message_id_fullwhois)
-            channel = bot.get_channel(864566639323906078)
-            logoutput=discord.Embed(title=str(message.author.name) + " used the ?fullwhois command on a blacklisted IP!", color=0xf40101)
-            logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
-            logoutput.set_thumbnail(url=str(message.author.avatar_url))
-            logoutput.add_field(name="Command", value="?fullwhois", inline=False)
-            logoutput.add_field(name="User", value=str(message.author), inline=True)
-            logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
-            logoutput.add_field(name="User Input", value=str(fullwhois_domain), inline=True)
-            logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
-            logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
-            logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
-            logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
-            await channel.send(embed=logoutput)
-            return
-
-
-
-    if fullwhois_user_input_sanitize_IP!=None:
-        raw_fullwhois_api = requests.get("http://api.ipstack.com/" + fullwhois_user_input_sanitize_IP.group() + "?access_key=" + config["Api_keys"]["IP_stack"], headers=headers)
-        
-        embed=discord.Embed(title="Here is the full whois for " + fullwhois_user_input_sanitize_IP.group(), color=0x83ff61)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-        embed.set_thumbnail(url="https://media.discordapp.net/attachments/866002022464487444/866410785936506880/1200px-VisualEditor_-_Icon_-_Open-book-2.svg.png?width=580&height=580")
-        embed.add_field(name="Data for " + str(fullwhois_user_input_sanitize_IP.group()), value=str(raw_fullwhois_api.json()).replace(",", "\n").replace("'", "").replace("[{", "").replace("{", "").replace("}}", "").replace("}]", "").replace("_", " "), inline=False)
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
-
-        
-        await message.send(embed=embed)
-        
-    elif fullwhois_user_input_sanitize_domain!=None:
-
-        api_fullwhois_promptapi_out = requests.get("https://api.promptapi.com/whois/query?domain=" + fullwhois_user_input_sanitize_domain.group(), headers=headers)
-        api_fullwhois_ipstack_out = requests.get("http://api.ipstack.com/" + fullwhois_user_input_sanitize_domain.group() + "?access_key=" + config["Api_keys"]["IP_stack"], headers=headers)
-
-        if api_fullwhois_ipstack_out.json()["country_code"] == None:
-            embed=discord.Embed(title="Looks like that domain does not exist, please enter a valid domain.", color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-            embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
-            await message.channel.send(embed=embed)
-            await bot.http.delete_message(channel_id_fullwhois, message_id_fullwhois)
-            return
- 
-        embed=discord.Embed(title="Here is the full whois for " + fullwhois_user_input_sanitize_domain.group(), color=0x83ff61)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-        embed.set_thumbnail(url="https://media.discordapp.net/attachments/866002022464487444/866410785936506880/1200px-VisualEditor_-_Icon_-_Open-book-2.svg.png?width=580&height=580")
-        embed.add_field(name="Data for " + str(fullwhois_user_input_sanitize_domain.group()), value=str(api_fullwhois_ipstack_out.json()).replace(",", "\n").replace("'", "").replace("[{", "").replace("{", "").replace("}}", "").replace("}]", "").replace("_", " "), inline=False)
-        embed.add_field(name="Some other stuff", value=str(api_fullwhois_promptapi_out.json()).replace("{", "").replace('"', "").replace("_", " ").replace(",", "\n").replace("'", "").replace("}}", ""))
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
-        await message.channel.send(embed=embed)
-
-    else:
-        embed=discord.Embed(title="Looks like you did not enter a domain or IP address", color=0xf40101)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
-        embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
-        await message.channel.send(embed=embed)
-
-    await bot.http.delete_message(channel_id_fullwhois, message_id_fullwhois)
-
-    channel = bot.get_channel(864566639323906078)
-    logoutput=discord.Embed(title=str(message.author.name) + " used the ?fullwhois command!", color=0x83ff61)
-    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
-    logoutput.set_thumbnail(url=str(message.author.avatar_url))
-    logoutput.add_field(name="Command", value="?fullwhois", inline=False)
-    logoutput.add_field(name="User", value=str(message.author), inline=True)
-    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
-    logoutput.add_field(name="User Input", value=str(fullwhois_domain), inline=True)
-    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
-    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
-    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
-    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
-    await channel.send(embed=logoutput)
+async def fullwhois (message):
+    await message.channel.send(redis_connect.hget("bot_config", "Bot_prefix") + "fullwhois is depreciated, please use the ?whois command.")
 
 @bot.command()
 async def webping (message, webping_responce):
@@ -622,15 +465,15 @@ async def webping (message, webping_responce):
 
     sanitized_word_output_webping_ip = re.search('^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$', webping_responce)
 
-    sanitized_word_output_webping_domain = re.search('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', webping_responce)
+    sanitized_word_output_webping_domain = re.search('([0-9a-z-]{2,}\.[0-9a-z-]{2,3}\.[0-9a-z-]{2,3}|[0-9a-z-]{2,}\.[0-9a-z-]{2,4})$', webping_responce)
 
 
     if sanitized_word_output_webping_domain!=None:    
-        if sanitized_word_output_webping_domain.group() in blacklist["domain"]:
+        if sanitized_word_output_webping_domain.group() in redis_connect.hget("blacklist", "domain"):
             embed=discord.Embed(title="Sorry, " + sanitized_word_output_webping_domain.group() + " is blacklisted from Pencord.", color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
             embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
             await message.channel.send(embed=embed)
             await bot.http.delete_message(channel_id_webping, message_id_webping)
             channel = bot.get_channel(864566639323906078)
@@ -649,11 +492,11 @@ async def webping (message, webping_responce):
             return
 
     if sanitized_word_output_webping_ip!=None:
-        if sanitized_word_output_webping_ip.group() in blacklist["ip"]:
+        if sanitized_word_output_webping_ip.group() in redis_connect.hget("blacklist", "ip"):
             embed=discord.Embed(title="Sorry, " + sanitized_word_output_webping_ip.group() + " is blacklisted from Pencord.", color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
             embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
             await message.channel.send(embed=embed)
             await bot.http.delete_message(channel_id_webping, message_id_webping)
             channel = bot.get_channel(864566639323906078)
@@ -676,23 +519,23 @@ async def webping (message, webping_responce):
         if sanitized_word_output_webping_domain!=None:
             output_ping = os.popen("ping -c 3 " + sanitized_word_output_webping_domain.group())
             embed=discord.Embed(title="Output for " + sanitized_word_output_webping_domain.group(), description=output_ping.read(), color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
             embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
             await message.channel.send(embed=embed)
 
         if sanitized_word_output_webping_ip!=None:
             output_ping = os.popen("ping -c 3 " + sanitized_word_output_webping_ip.group())
             embed=discord.Embed(title="Output for " + sanitized_word_output_webping_ip.group(), description=output_ping.read(), color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
             embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
             await message.channel.send(embed=embed)
         else:
             embed=discord.Embed(title="Looks like you did not enter a domain or IP address", color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
             embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
             await message.channel.send(embed=embed)
             await bot.http.delete_message(channel_id_webping, message_id_webping)
             return
@@ -700,9 +543,9 @@ async def webping (message, webping_responce):
             
     except:
         embed=discord.Embed(title="Output for " + sanitized_word_output_webping_ip.group(), description="I don't seem to know this domain. Is it a valid domain?", color=0xf40101)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
         embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
         await message.channel.send(embed=embed) 
 
     await bot.http.delete_message(channel_id_webping, message_id_webping)
@@ -735,14 +578,14 @@ async def dns (message, dns_input):
 
     sanitized_word_output_dnsenum_ip = re.match("^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$",dns_input)
 
-    sanitized_word_output_dnsenum_domain = re.match('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', dns_input)
+    sanitized_word_output_dnsenum_domain = re.match('([0-9a-z-]{2,}\.[0-9a-z-]{2,3}\.[0-9a-z-]{2,3}|[0-9a-z-]{2,}\.[0-9a-z-]{2,4})$', dns_input)
 
     if sanitized_word_output_dnsenum_domain!=None:    
-        if sanitized_word_output_dnsenum_domain.group() in blacklist["domain"]:
+        if sanitized_word_output_dnsenum_domain.group() in redis_connect.hget("blacklist", "domain"):
             embed=discord.Embed(title="Sorry, " + sanitized_word_output_dnsenum_domain.group() + " is blacklisted from Pencord.", color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
             embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
             await message.channel.send(embed=embed)
             await bot.http.delete_message(channel_id_dnslookup, message_id_dnslookup)
             channel = bot.get_channel(864566639323906078)
@@ -761,11 +604,11 @@ async def dns (message, dns_input):
             return
 
     if sanitized_word_output_dnsenum_ip!=None:
-        if sanitized_word_output_dnsenum_ip.group() in blacklist["ip"]:
+        if sanitized_word_output_dnsenum_ip.group() in redis_connect.hget("blacklist", "ip"):
             embed=discord.Embed(title="Sorry, " + sanitized_word_output_dnsenum_ip.group() + " is blacklisted from Pencord.", color=0xf40101)
-            embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+            embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
             embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-            embed.set_footer(text=config["Embeds"]["template"]["footer"])
+            embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
             await message.channel.send(embed=embed)
             await bot.http.delete_message(channel_id_dnslookup, message_id_dnslookup)
             channel = bot.get_channel(864566639323906078)
@@ -787,25 +630,25 @@ async def dns (message, dns_input):
         output_dns = os.popen("dnsenum " + str(sanitized_word_output_dnsenum_domain.group()))
         remove_odd_shit = str(output_dns.read().replace("[1;34m", "").replace("[0m", "")).replace("[1;31m", "")[50:]
         embed=discord.Embed(title="Grabbing DNS records for " + sanitized_word_output_dnsenum_domain.group(), description=remove_odd_shit + "\n**Note: You should not rely on this feature and conduct your own test as this feature may not display all DNS records**", color=0xf40101)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
         embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
         await message.channel.send(embed=embed)
 
     elif sanitized_word_output_dnsenum_ip!=None:
         embed=discord.Embed(title="OOPS!", description="```This command only works with a domain name```", color=0xf40101)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
         embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
         await message.channel.send(embed=embed)
         await bot.http.delete_message(channel_id_dnslookup, message_id_dnslookup)
         return
 
     else:
         embed=discord.Embed(title="Please enter a valid domain", color=0xf40101)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
         embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
         await message.channel.send(embed=embed)
 
 
@@ -828,14 +671,14 @@ async def dns (message, dns_input):
 @bot.command()
 async def status (message):
     embed=discord.Embed(title="Pencord Status", description="Here is the status for Pencord:", color=0x0088ff)
-    embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+    embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
     embed.add_field(name="servers", value=len(bot.guilds), inline=True)
     #embed.add_field(name="Uptime", value=datetime.datetime.now().replace(microsecond=0) - BotStartTime.replace(microsecond=0), inline=True)
     embed.add_field(name="Uptime", value=uptime(), inline=True)
-    embed.add_field(name="Version", value=config["Bot_config"]["Version"], inline=True)
+    embed.add_field(name="Version", value=redis_connect.hget("bot_config", "Version"), inline=True)
     embed.add_field(name="System Health", value=":white_check_mark: ", inline=True)
     embed.add_field(name="Errors", value="No errors :white_check_mark: ", inline=False)
-    embed.set_footer(text=config["Embeds"]["template"]["footer"])
+    embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
     await message.send(embed=embed)
     channel = bot.get_channel(864566639323906078)
     logoutput=discord.Embed(title=str(message.author.name) + " used the ?status command!", color=0x83ff61)
@@ -851,53 +694,139 @@ async def status (message):
     logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
 
-
 @bot.command()
-async def block (message, domain_IP_input):
+async def block (message, domain_IP_input_unblock):
     #send "please wait message"
     please_wait_message = await message.channel.send(embed=please_wait)
 
     #get message id
-    message_id_dnslookup = please_wait_message.id
+    message_id_block = please_wait_message.id
 
     #get channel id
-    channel_id_dnslookup = message.channel.id
+    channel_id_block = message.channel.id
 
-    sanitized_word_output_block_ip = re.match("^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$",domain_IP_input)
+    sanitized_word_output_block_ip = re.match("^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$",domain_IP_input_unblock)
 
-    sanitized_word_output_block_domain = re.match('([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}', domain_IP_input)
+    sanitized_word_output_block_domain = re.match('([0-9a-z-]{2,}\.[0-9a-z-]{2,3}\.[0-9a-z-]{2,3}|[0-9a-z-]{2,}\.[0-9a-z-]{2,4})$', domain_IP_input_unblock)
 
     
     if sanitized_word_output_block_domain!=None:
-        if str(message.author.id) in config["Permissions"]["owner"]:
-            await message.channel.send("You have permission")
-            
-
+        if str(message.author.id) in redis_connect.hget("permissions", "mod") or redis_connect.hget("permissions", "admin"):
+            if sanitized_word_output_block_domain.group() in redis_connect.hget("blacklist", "domain"):
+                await message.channel.send("That domain is allready blocked")
+            else:
+                redis_connect.hset("blacklist", "domain", redis_connect.hget("blacklist", "domain") + ", " + sanitized_word_output_block_domain.group())
+                await message.channel.send(sanitized_word_output_block_domain.group() + " has been blocked")
         else:
             await message.channel.send(":red_circle: **You do not have permission!**")
         
 
     elif sanitized_word_output_block_ip!=None:
-        if message.author.id in config["Permissions"]["owner"]:
-            await message.channel.send("You have permission")
-
+        if str(message.author.id) in redis_connect.hget("permissions", "mod") or redis_connect.hget("permissions", "admin"):
+            if sanitized_word_output_block_ip.group() in redis_connect.hget("blacklist", "ip"):
+                await message.channel.send("That IP is allready blocked")
+            else:
+                redis_connect.hset("blacklist", "ip", redis_connect.hget("blacklist", "ip") + ", " + sanitized_word_output_block_ip.group())
+                await message.channel.send(sanitized_word_output_block_ip.group() + " has been blocked")
         else:
-            await message.channel.send(":red_circle: ***You do not have permission!***")
+            await message.channel.send(":red_circle: **You do not have permission!**")
         
 
     else:
         embed=discord.Embed(title="Please enter a valid domain or IP", color=0xf40101)
-        embed.set_author(name=config["Embeds"]["template"]["author"], icon_url=config["Embeds"]["template"]["icon_url"])
+        embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
         embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-        embed.set_footer(text=config["Embeds"]["template"]["footer"])
+        embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
         await message.channel.send(embed=embed)
 
 
-    await bot.http.delete_message(channel_id_dnslookup, message_id_dnslookup)
+    await bot.http.delete_message(channel_id_block, message_id_block)
+
+    channel = bot.get_channel(864566639323906078)
+    logoutput=discord.Embed(title=str(message.author.name) + " used the ?block command!", color=0xfff700)
+    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+    logoutput.set_thumbnail(url=str(message.author.avatar_url))
+    logoutput.add_field(name="Command", value="?block", inline=False)
+    logoutput.add_field(name="User", value=str(message.author), inline=True)
+    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+    logoutput.add_field(name="User Input", value=str(domain_IP_input_unblock), inline=True)
+    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+    await channel.send(embed=logoutput)
+
+@bot.command()
+async def unblock (message, domain_IP_input_unblock):
+    #send "please wait message"
+    please_wait_message = await message.channel.send(embed=please_wait)
+
+    #get message id
+    message_id_unblock = please_wait_message.id
+
+    #get channel id
+    channel_id_unblock = message.channel.id
+
+    sanitized_word_output_unblock_ip = re.match("^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$",domain_IP_input_unblock)
+
+    sanitized_word_output_unblock_domain = re.match('([0-9a-z-]{2,}\.[0-9a-z-]{2,3}\.[0-9a-z-]{2,3}|[0-9a-z-]{2,}\.[0-9a-z-]{2,4})$', domain_IP_input_unblock)
+
+    
+    if sanitized_word_output_unblock_domain!=None:
+        if str(message.author.id) in redis_connect.hget("permissions", "mod") or redis_connect.hget("permissions", "admin"):
+            if sanitized_word_output_unblock_domain.group() not in redis_connect.hget("blacklist", "domain"):
+                await message.channel.send("That domain is not blocked")
+            else:
+                redis_connect.hset("blacklist", "domain", redis_connect.hget("blacklist", "domain").replace(", " + sanitized_word_output_unblock_domain.group(), ""))
+                await message.channel.send(sanitized_word_output_unblock_domain.group() + " has been unblocked")
+        else:
+            await message.channel.send(":red_circle: **You do not have permission!**")
+        
+
+    elif sanitized_word_output_unblock_ip!=None:
+        if str(message.author.id) in redis_connect.hget("permissions", "mod") or redis_connect.hget("permissions", "admin"):
+            if sanitized_word_output_unblock_ip.group() not in redis_connect.hget("blacklist", "ip"):
+                await message.channel.send("That IP is not blocked")
+            else:
+                redis_connect.hset("blacklist", "ip", redis_connect.hget("blacklist", "ip").replace(", " + sanitized_word_output_unblock_ip.group(), ""))
+                await message.channel.send(sanitized_word_output_unblock_ip.group() + " has been unblocked")
+        else:
+            await message.channel.send(":red_circle: **You do not have permission!**")
+        
+
+    else:
+        embed=discord.Embed(title="Please enter a valid domain or IP", color=0xf40101)
+        embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
+        embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
+        embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
+        await message.channel.send(embed=embed)
+
+
+    await bot.http.delete_message(channel_id_unblock, message_id_unblock)
+
+    channel = bot.get_channel(864566639323906078)
+    logoutput=discord.Embed(title=str(message.author.name) + " used the ?block command!", color=0xfff700)
+    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+    logoutput.set_thumbnail(url=str(message.author.avatar_url))
+    logoutput.add_field(name="Command", value="?block", inline=False)
+    logoutput.add_field(name="User", value=str(message.author), inline=True)
+    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+    logoutput.add_field(name="User Input", value=str(domain_IP_input_unblock), inline=True)
+    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+    await channel.send(embed=logoutput)
 
 
 
-bot.run(config["Bot_config"]["Main_Bot_Token"])
+admin_input = input("What bot do you want to run the script on: \n(1) - Main bot\n(2) - Test bot\n")
+if admin_input == "1":
+    bot.run(redis_connect.hget("bot_config", "Main_Bot_Token"))
+elif admin_input == "2":
+    bot.run(redis_connect.hget("bot_config", "Test_Bot_Token"))
+else:
+    print("You entered an incorrect choice")
 
 
 

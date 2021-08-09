@@ -13,6 +13,7 @@ import time
 from discord import channel
 from discord.ext.commands.core import group
 from discord.member import flatten_user
+from discord.utils import valid_icon_size
 import requests
 from discord.ext import commands, tasks
 import re
@@ -100,17 +101,9 @@ please_wait.set_footer(text=redis_connect.hget("embed_template", "footer"))
 async def help (message):
     embed=discord.Embed(title="How to use Pencord Discord bot", description="All the commands", color=0x0088ff)
     embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
-    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "help", value="Display all of the commands.", inline=True)
-    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "whois", value="Display whois data for a domain or IP.", inline=True)
-    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "bincheck", value="Display the status of a Bank Identification Number.", inline=True)
-    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "domainlist", value="Display related domains about the target domain.", inline=True)
-    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "webping", value="Ping a website.", inline=True)
-    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "ping", value="Responds back the time it takes to recieve and send a message.", inline=True)
-    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "password", value="guesses how long it would take to crack a password.", inline=True)
-    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "dns", value="Displays the DNS records and its IP's **Note: You should not rely on this feature and conduct your own test as this feature may not display all DNS records**", inline=True)
-    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "usersearch", value="Search the interwebs for valid target usernames.", inline=True)
-    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "changelog", value="View the changelog of Pencord.", inline=False)
-    embed.add_field(name=redis_connect.hget("bot_config", "Bot_prefix") + "status", value="View the status of Pencord.", inline=False)
+    embed.add_field(name="Website discovering", value=redis_connect.hget("bot_config", "Bot_prefix") + "**whois** - Display whois data for a domain or IP.\n" + redis_connect.hget("bot_config", "Bot_prefix") + "**domainlist** - Display related domains about the target domain.\n" + redis_connect.hget("bot_config", "Bot_prefix") + "**webping** - Ping a website.\n" + redis_connect.hget("bot_config", "Bot_prefix") + "**wpscan** - Scans a wordpress site and tells you details about it.\n" + redis_connect.hget("bot_config", "Bot_prefix") + "**dns** - Displays the DNS records and its IP's.\n", inline=False)
+    embed.add_field(name="Miscellaneous", value=redis_connect.hget("bot_config", "Bot_prefix") + "**usersearch** - Search the interwebs for valid target usernames.\n" + redis_connect.hget("bot_config", "Bot_prefix") + "**bincheck** - Display the status of a Bank Identification Number.\n", inline=False)
+    embed.add_field(name="Pencord default commands", value=redis_connect.hget("bot_config", "Bot_prefix") + "**help** - Display all of the commands and what they do.\n" + redis_connect.hget("bot_config", "Bot_prefix") + "**ping** - Test the Discord API connection\n" + redis_connect.hget("bot_config", "Bot_prefix") + "**changelog** - View the changelog of Pencord.\n" + redis_connect.hget("bot_config", "Bot_prefix") + "**status** - View the status of Pencord.\n", inline=False)
     embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
     await message.channel.send(embed=embed)
     channel = bot.get_channel(864566639323906078)
@@ -221,7 +214,7 @@ async def whois(message, whois_domain):
         await message.channel.send(embed=embed)
 
 
-    #delete the "please wait" message
+    #delete the "please wait" messasurfshark vpnge
     await bot.http.delete_message(channel_id, message_id)
     
     #logging to Discord
@@ -663,7 +656,7 @@ async def dns (message, dns_input):
     logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
 
-@bot.command()
+@bot.command(aliases=['pwd'])
 async def password(ctx, *args):
     try:
         if len(args) == 0:
@@ -679,7 +672,7 @@ async def password(ctx, *args):
         embed = discord.Embed(title='ERROR: Could not connect. Please try again', color=0xff0000)
         await ctx.send(embed=embed)
 
-@bot.command(aliases=["us"])
+@bot.command(aliases=['us'])
 async def usersearch(message, user_input):
      #send "please wait message"
     please_wait_message = await message.channel.send(embed=please_wait)
@@ -689,10 +682,9 @@ async def usersearch(message, user_input):
 
     #get channel id
     channel_id_usersearch = message.channel.id
-    print(user_input)
+
     usersearch_output = os.popen("python3 ~/sherlock/sherlock/sherlock.py " + user_input)
     
-
     await message.channel.send("Hey! just a heads up this command may take some time to complete so please be patient.")
     
     embed=discord.Embed(title="Output for " + user_input, description=usersearch_output.read()[:4096], color=0xf40101)
@@ -717,6 +709,55 @@ async def usersearch(message, user_input):
     logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
     
+@bot.command(aliases=['wps'])
+async def wpscan(message, wpscan_input):
+    #send "please wait message"
+    please_wait_message = await message.channel.send(embed=please_wait)
+
+    #get message id
+    message_id_wpscan = please_wait_message.id
+
+    #get channel id
+    channel_id_wpscan = message.channel.id
+
+    user_input_sanitize_domain = re.search('([0-9a-z-]{2,}\.[0-9a-z-]{2,3}\.[0-9a-z-]{2,3}|[0-9a-z-]{2,}\.[0-9a-z-]{2,7})$', wpscan_input)
+    user_input_sanitize_IP = re.search('^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$', wpscan_input)
+
+    if user_input_sanitize_IP!=None:
+        embed=discord.Embed(title="Oops", description="please enter a website domain.", color=0xf40101)
+        embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
+        embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
+        await message.send(embed=embed)
+
+    elif user_input_sanitize_domain!=None:
+        wpscan_output = os.popen("wpscan --url " + user_input_sanitize_domain.group())
+
+        embed=discord.Embed(title="Wordpress scan for " + user_input_sanitize_domain.group(), description=wpscan_output.read()[566:].replace("[32m[+][0m", "").replace("[34m[i][0m", "").replace("[33m[!][0m", "").replace("|===========================================================================================================================================================================", "|=====================================================").replace("|=============================================================================================================================================================================|", "==============================================================================================================|").replace("No WPScan API Token given, as a result vulnerability data has not been output.", "").replace("You can get a free API token with 25 daily requests by registering at https://wpscan.com/register", "").replace("\n\n\n", "").replace("___", ""), color=0x83ff61)
+        embed.set_author(name=redis_connect.hget("embed_template", "author"), icon_url=redis_connect.hget("embed_template", "icon_url"))
+        embed.set_footer(text=redis_connect.hget("embed_template", "footer"))
+        await message.send(embed=embed)
+    
+
+    await bot.http.delete_message(message_id_wpscan, channel_id_wpscan)
+
+    channel = bot.get_channel(864566639323906078)
+    logoutput=discord.Embed(title=str(message.author.name) + " used the ?wpscan command!", color=0x83ff61)
+    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+    logoutput.set_thumbnail(url=str(message.author.avatar_url))
+    logoutput.add_field(name="Command", value="?wpscan", inline=False)
+    logoutput.add_field(name="User", value=str(message.author), inline=True)
+    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+    logoutput.add_field(name="User Input", value=str(wpscan_input), inline=True)
+    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+    await channel.send(embed=logoutput)
+
+@bot.command(aliases=['cf'])
+async def cloudflare(message, cloudflare_input):
+
+
 @bot.command(aliases=['s'])
 async def status (message):
     embed=discord.Embed(title="Pencord Status", description="Here is the status for Pencord:", color=0x0088ff)

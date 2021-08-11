@@ -1060,3 +1060,5 @@ elif admin_input == "2":
     bot.run(redis_connect.hget("bot_config", "Test_Bot_Token"))
 else:
     print("You entered an incorrect choice")
+
+#lol

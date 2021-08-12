@@ -780,13 +780,12 @@ async def wpscan(message, wpscan_input, wpscan_argument=""):
         await message.send(embed=embed)
 
     elif user_input_sanitize_domain!=None:
-        wpscan_output = os.popen("wpscan --url " + user_input_sanitize_domain.group() + " " + wpscan_argument)
-
-        embed=discord.Embed(title="Wordpress scan for " + user_input_sanitize_domain.group(), description=wpscan_output.read()[566:].replace("[32m[+][0m", "").replace("[34m[i][0m", "").replace("[33m[!][0m", "").replace("|===========================================================================================================================================================================", "|=====================================================").replace("|=============================================================================================================================================================================|", "==============================================================================================================|").replace("No WPScan API Token given, as a result vulnerability data has not been output.", "").replace("You can get a free API token with 25 daily requests by registering at https://wpscan.com/register", "").replace("\n\n\n", "").replace("___", "").replace("--url", "url").replace("--ignore-main-redirect", "```--ignore-main-redirect```"), color=0x83ff61)
+        wpscan_output = os.popen("wpscan --url " + "https://" + user_input_sanitize_domain.group() + " " + wpscan_argument)
+        embed=discord.Embed(title="Wordpress scan for " + user_input_sanitize_domain.group(), description=wpscan_output.read()[566:4096].replace("[32m[+][0m", "").replace("[34m[i][0m", "").replace("[33m[!][0m", "").replace("|===========================================================================================================================================================================", "|=====================================================").replace("|=============================================================================================================================================================================|", "==============================================================================================================|").replace("No WPScan API Token given, as a result vulnerability data has not been output.", "").replace("You can get a free API token with 25 daily requests by registering at https://wpscan.com/register", "").replace("\n\n\n", "").replace("___", "").replace("--url", "url").replace("--ignore-main-redirect", "```--ignore-main-redirect```"), color=0x83ff61)
         embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
         embed.set_footer(text=redis_connect.hget("embed template", "footer"))
         await message.send(embed=embed)
-    
+
 
     await bot.http.delete_message(channel_id_wpscan, message_id_wpscan)
 

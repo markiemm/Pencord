@@ -238,7 +238,7 @@ async def changelog (message):
     embed=discord.Embed(title="Changelog (Bot version: " + "V" + redis_connect.hget("bot config", "Version") + ")", color=0x0088ff)
     embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
     embed.set_thumbnail(url="https://img.icons8.com/plasticine/100/000000/approve-and-update.png")
-    embed.add_field(name="V2.5.0", value="- More bug fixes.\n - Added credits command.\n - ", inline=False)
+    embed.add_field(name="V2.5.0", value="- More bug fixes.\n - Added credits command.", inline=False)
     embed.add_field(name="V2.4.0", value="- More stuff fixed.", inline=False)
     embed.add_field(name="V2.3.1", value="- backend improvement, Pencord now uses a Redis database \n- Improved Regex filtering\n- Fullwhois and whois is now the same command.\n- Improved Whois\n- Major/minor bug fixes.", inline=False)
     embed.add_field(name="V2.2.7", value="- fixed minor & major bugs \n - bot now runs faster\n - Bot won't crash when inputting invalid queries\n - Added a domain blacklist", inline=False)

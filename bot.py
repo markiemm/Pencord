@@ -103,7 +103,7 @@ async def help (message):
     embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
     embed.add_field(name="Website discovering", value=redis_connect.hget("bot config", "Bot_prefix") + "**whois** - Display whois data for a domain or IP.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**domainlist** - Display related domains about the target domain.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**webping** - Ping a website.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**wpscan** - Scans a wordpress site and tells you details about it.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**dns** - Displays the DNS records and its IP's.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**cloudflare** - Tries and get the server IP that's behind a Cloudflare proxy.\n", inline=False)
     embed.add_field(name="Miscellaneous", value=redis_connect.hget("bot config", "Bot_prefix") + "**usersearch** - Search the interwebs for valid target usernames.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**bincheck** - Display the status of a Bank Identification Number.\n", inline=False)
-    embed.add_field(name="Pencord default commands", value=redis_connect.hget("bot config", "Bot_prefix") + "**help** - Display all of the commands and what they do.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**ping** - Test the Discord API connection\n" + redis_connect.hget("bot config", "Bot_prefix") + "**changelog** - View the changelog of Pencord.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**status** - View the status of Pencord.\n", inline=False)
+    embed.add_field(name="Pencord default commands", value=redis_connect.hget("bot config", "Bot_prefix") + "**help** - Display all of the commands and what they do.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**ping** - Test the Discord API connection\n" + redis_connect.hget("bot config", "Bot_prefix") + "**changelog** - View the changelog of Pencord.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**status** - View the status of Pencord.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**credits** - View the projects that made Pencord possible.\n", inline=False)
     embed.set_footer(text=redis_connect.hget("embed template", "footer"))
     await message.channel.send(embed=embed)
     channel = bot.get_channel(864566639323906078)
@@ -238,7 +238,8 @@ async def changelog (message):
     embed=discord.Embed(title="Changelog (Bot version: " + "V" + redis_connect.hget("bot config", "Version") + ")", color=0x0088ff)
     embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
     embed.set_thumbnail(url="https://img.icons8.com/plasticine/100/000000/approve-and-update.png")
-    embed.add_field(name="V2.4.0", value="- Fixed", inline=False)
+    embed.add_field(name="V2.5.0", value="- More bug fixes.\n - Added credits command.\n - ", inline=False)
+    embed.add_field(name="V2.4.0", value="- More stuff fixed.", inline=False)
     embed.add_field(name="V2.3.1", value="- backend improvement, Pencord now uses a Redis database \n- Improved Regex filtering\n- Fullwhois and whois is now the same command.\n- Improved Whois\n- Major/minor bug fixes.", inline=False)
     embed.add_field(name="V2.2.7", value="- fixed minor & major bugs \n - bot now runs faster\n - Bot won't crash when inputting invalid queries\n - Added a domain blacklist", inline=False)
     embed.add_field(name="V2.2.5", value="- fixed minor bugs \n - added new error messages \n", inline=False)
@@ -898,15 +899,21 @@ async def cloudflare(message, cloudflare_input):
     logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
     
-
+@bot.command(aliases=['c'])
+async def credits(message):
+    embed=discord.Embed(title="Tools that was made to use Pencord", description="-------------------------------------------------------------------------", color=0x83ff61)
+    embed.add_field(name="Discord embed generator", value="[Link](https://cog-creators.github.io/discord-embed-sandbox/)", inline=False)
+    embed.add_field(name="Pdlist", value="[Link](https://github.com/gnebbia/pdlist)", inline=False)
+    embed.add_field(name="Dnsenum", value="[Link](https://github.com/fwaeytens/dnsenum)", inline=False)
+    embed.add_field(name="Password checker", value="[Link](https://github.com/plasticuproject/clevercord)", inline=False)
+    embed.add_field(name="WPscan", value="[Link](https://wpscan.com/)", inline=False)
+    embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
+    embed.set_footer(text=redis_connect.hget("embed template", "footer"))
+    await message.channel.send(embed=embed)
 
 
 @bot.command(aliases=['s'])
 async def status (message):
-    status_no_error_output = ""
-    system_health_icon = ""
-    announcements = ""
-
     #health status
     if redis_connect.get("health status") == "":
         status_no_error_output = "No Errors"

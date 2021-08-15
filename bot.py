@@ -688,8 +688,8 @@ async def usersearch(message, *, user_input):
 
     #sanitize
     user_sanitize = str(user_input).replace(" ", "-")
-
-    usersearch_output = os.popen("python3 ~/sherlock/sherlock/sherlock.py " + user_sanitize)
+    
+    usersearch_output = os.popen("python3 /sherlock/sherlock/sherlock.py " + user_sanitize)
     
     await message.channel.send("Hey! just a heads up this command may take some time to complete so please be patient.")
     
@@ -915,7 +915,12 @@ async def credits(message):
     embed.set_footer(text=redis_connect.hget("embed template", "footer"))
     await message.channel.send(embed=embed)
 
+@bot.command(aliases=['ps'])
+async def portscan(message, portscan_input):
 
+    portscan_output = os.popen("nmap -F " + portscan_input)
+    sanitize_output = re.search("/(\d{1,5})\/(tcp|udp|http|https|ssh)", portscan_output.read())
+    print(sanitize_output.group())
 
 
 

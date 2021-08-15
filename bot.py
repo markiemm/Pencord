@@ -102,7 +102,7 @@ async def help (message):
     embed=discord.Embed(title="How to use Pencord Discord bot", description="All the commands", color=0x0088ff)
     embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
     embed.add_field(name="Website discovering", value=redis_connect.hget("bot config", "Bot_prefix") + "**whois** - Display whois data for a domain or IP.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**domainlist** - Display related domains about the target domain.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**webping** - Ping a website.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**wpscan** - Scans a wordpress site and tells you details about it.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**dns** - Displays the DNS records and its IP's.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**cloudflare** - Tries and get the server IP that's behind a Cloudflare proxy.\n", inline=False)
-    embed.add_field(name="Miscellaneous", value=redis_connect.hget("bot config", "Bot_prefix") + "**usersearch** - Search the interwebs for valid target usernames.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**bincheck** - Display the status of a Bank Identification Number.\n", inline=False)
+    embed.add_field(name="Miscellaneous", value=redis_connect.hget("bot config", "Bot_prefix") + "**usersearch** - Search the interwebs for valid target usernames.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**bincheck** - Display the status of a Bank Identification Number.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**face* - Generate a fake face.\n", inline=False)
     embed.add_field(name="Pencord default commands", value=redis_connect.hget("bot config", "Bot_prefix") + "**help** - Display all of the commands and what they do.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**ping** - Test the Discord API connection\n" + redis_connect.hget("bot config", "Bot_prefix") + "**changelog** - View the changelog of Pencord.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**status** - View the status of Pencord.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**credits** - View the projects that made Pencord possible.\n", inline=False)
     embed.set_footer(text=redis_connect.hget("embed template", "footer"))
     await message.channel.send(embed=embed)
@@ -238,6 +238,7 @@ async def changelog (message):
     embed=discord.Embed(title="Changelog (Bot version: " + "V" + redis_connect.hget("bot config", "Version") + ")", color=0x0088ff)
     embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
     embed.set_thumbnail(url="https://img.icons8.com/plasticine/100/000000/approve-and-update.png")
+    embed.add_field(name="V2.6.2", value="- Added a face generator\n - fixed minor bugs", inline=False)
     embed.add_field(name="V2.5.2", value="- fixed minor bugs", inline=False)
     embed.add_field(name="V2.5.0", value="- More bug fixes.\n - Added credits command.", inline=False)
     embed.add_field(name="V2.4.0", value="- More stuff fixed.", inline=False)
@@ -907,6 +908,7 @@ async def cloudflare(message, cloudflare_input):
 async def credits(message):
     embed=discord.Embed(title="Tools that was made to use Pencord", description="-------------------------------------------------------------------------", color=0x83ff61)
     embed.add_field(name="Discord embed generator", value="[Link](https://cog-creators.github.io/discord-embed-sandbox/)", inline=False)
+    embed.add_field(name="Face generator", value="[Link](https://hankhank10.github.io/fakeface/)", inline=False)
     embed.add_field(name="Pdlist", value="[Link](https://github.com/gnebbia/pdlist)", inline=False)
     embed.add_field(name="Dnsenum", value="[Link](https://github.com/fwaeytens/dnsenum)", inline=False)
     embed.add_field(name="Password checker", value="[Link](https://github.com/plasticuproject/clevercord)", inline=False)
@@ -914,13 +916,51 @@ async def credits(message):
     embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
     embed.set_footer(text=redis_connect.hget("embed template", "footer"))
     await message.channel.send(embed=embed)
-
+#need to do!!!!!!
 @bot.command(aliases=['ps'])
 async def portscan(message, portscan_input):
 
     portscan_output = os.popen("nmap -F " + portscan_input)
     sanitize_output = re.search("/(\d{1,5})\/(tcp|udp|http|https|ssh)", portscan_output.read())
     print(sanitize_output.group())
+
+@bot.command()
+async def face(message):
+    #send "please wait message"
+    please_wait_message = await message.channel.send(embed=please_wait)
+
+    #get message id
+    message_id_cloudflare = please_wait_message.id
+
+    #get channel id
+    channel_id_cloudflare = message.channel.id
+
+
+    faceoutput = requests.get("https://fakeface.rest/face/json")
+
+    embed=discord.Embed(title="Here is your generated face", color=0x83ff61)
+    embed.set_image(url=faceoutput.json()["image_url"])
+    embed.add_field(name="Gender", value=faceoutput.json()["gender"], inline=False)
+    embed.add_field(name="Age", value=faceoutput.json()["age"], inline=False)
+    embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
+    embed.set_footer(text=redis_connect.hget("embed template", "footer"))
+    await message.channel.send(embed=embed)
+
+    await bot.http.delete_message(channel_id_cloudflare, message_id_cloudflare)
+
+    channel = bot.get_channel(864566639323906078)
+    logoutput=discord.Embed(title=str(message.author.name) + " used the ?face command!", color=0x83ff61)
+    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+    logoutput.set_thumbnail(url=str(message.author.avatar_url))
+    logoutput.add_field(name="Command", value="?face", inline=False)
+    logoutput.add_field(name="User", value=str(message.author), inline=True)
+    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+    logoutput.add_field(name="User Input", value="face", inline=True)
+    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+    await channel.send(embed=logoutput)
 
 
 

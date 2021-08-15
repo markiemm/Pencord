@@ -207,7 +207,7 @@ async def whois(message, whois_domain):
         await message.send(embed=embed)
 
     else:
-        embed=discord.Embed(title="Looks like you did not enter a domain or IP address", color=0xf40101)
+        embed=discord.Embed(title="Looks like you did not enter a domain or IP address, please also don't include the '/' after your domain.", color=0xf40101)
         embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
         embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
         embed.set_footer(text=redis_connect.hget("embed template", "footer"))
@@ -238,6 +238,7 @@ async def changelog (message):
     embed=discord.Embed(title="Changelog (Bot version: " + "V" + redis_connect.hget("bot config", "Version") + ")", color=0x0088ff)
     embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
     embed.set_thumbnail(url="https://img.icons8.com/plasticine/100/000000/approve-and-update.png")
+    embed.add_field(name="V2.5.2", value="- fixed minor bugs", inline=False)
     embed.add_field(name="V2.5.0", value="- More bug fixes.\n - Added credits command.", inline=False)
     embed.add_field(name="V2.4.0", value="- More stuff fixed.", inline=False)
     embed.add_field(name="V2.3.1", value="- backend improvement, Pencord now uses a Redis database \n- Improved Regex filtering\n- Fullwhois and whois is now the same command.\n- Improved Whois\n- Major/minor bug fixes.", inline=False)
@@ -398,7 +399,7 @@ async def domainlist (message, sublist_responce):
             await message.channel.send(embed=embed)
 
         else:
-            embed=discord.Embed(title="Looks like that domain does not exist, please enter a valid domain.", color=0xf40101)
+            embed=discord.Embed(title="Looks like you did not enter a domain, please also don't include the '/' after your domain.", color=0xf40101)
             embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
             embed.set_thumbnail(url="https://img.icons8.com/fluent/100/000000/ping-pong.png")
             embed.set_footer(text=redis_connect.hget("embed template", "footer"))
@@ -520,7 +521,7 @@ async def webping (message, webping_responce):
             embed.set_footer(text=redis_connect.hget("embed template", "footer"))
             await message.channel.send(embed=embed)
         else:
-            embed=discord.Embed(title="Looks like you did not enter a domain or IP address", color=0xf40101)
+            embed=discord.Embed(title="Looks like you did not enter a domain or IP address, please also don't include the '/' after your domain.", color=0xf40101)
             embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
             embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
             embed.set_footer(text=redis_connect.hget("embed template", "footer"))
@@ -675,7 +676,7 @@ async def password(ctx, *args):
         await ctx.send(embed=embed)
 
 @bot.command(aliases=['us'])
-async def usersearch(message, user_input):
+async def usersearch(message, *, user_input):
      #send "please wait message"
     please_wait_message = await message.channel.send(embed=please_wait)
 
@@ -685,11 +686,14 @@ async def usersearch(message, user_input):
     #get channel id
     channel_id_usersearch = message.channel.id
 
-    usersearch_output = os.popen("python3 ~/sherlock/sherlock/sherlock.py " + user_input)
+    #sanitize
+    user_sanitize = str(user_input).replace(" ", "-")
+
+    usersearch_output = os.popen("python3 ~/sherlock/sherlock/sherlock.py " + user_sanitize)
     
     await message.channel.send("Hey! just a heads up this command may take some time to complete so please be patient.")
     
-    embed=discord.Embed(title="Output for " + user_input, description=usersearch_output.read()[:4096], color=0xf40101)
+    embed=discord.Embed(title="Here is what I found for " + user_input, description=usersearch_output.read()[:4096], color=0xf40101)
     embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
     embed.set_thumbnail(url="https://media.discordapp.net/attachments/866002022464487444/872960098165727252/user-1648810-1401302.png")
     embed.set_footer(text=redis_connect.hget("embed template", "footer"))
@@ -712,7 +716,7 @@ async def usersearch(message, user_input):
     await channel.send(embed=logoutput)
     
 @bot.command(aliases=['wps'])
-async def wpscan(message, wpscan_input, wpscan_argument=""):
+async def wpscan(message, wpscan_input, *, wpscan_argument):
     #send "please wait message"
     please_wait_message = await message.channel.send(embed=please_wait)
 
@@ -912,6 +916,9 @@ async def credits(message):
     await message.channel.send(embed=embed)
 
 
+
+
+
 @bot.command(aliases=['s'])
 async def status (message):
     #health status
@@ -973,7 +980,7 @@ async def block (message, domain_IP_input_unblock):
 
     
     if sanitized_word_output_block_domain!=None:
-        if str(message.author.id) in redis_connect.hget("permissions", "mod") or redis_connect.hget("permissions", "admin"):
+        if str(message.author.id) in redis_connect.hget("permissions", "mod") + redis_connect.hget("permissions", "admin"):
             if sanitized_word_output_block_domain.group() in redis_connect.hget("blacklist", "domain"):
                 await message.channel.send("That domain is allready blocked :warning:")
             else:
@@ -984,7 +991,7 @@ async def block (message, domain_IP_input_unblock):
         
 
     elif sanitized_word_output_block_ip!=None:
-        if str(message.author.id) in redis_connect.hget("permissions", "mod") or redis_connect.hget("permissions", "admin"):
+        if str(message.author.id) in redis_connect.hget("permissions", "mod") + redis_connect.hget("permissions", "admin"):
             if sanitized_word_output_block_ip.group() in redis_connect.hget("blacklist", "ip"):
                 await message.channel.send("That IP is allready blocked :warning:")
             else:
@@ -1033,9 +1040,9 @@ async def unblock (message, domain_IP_input_unblock):
 
     sanitized_word_output_unblock_domain = re.match('([0-9a-z-]{2,}\.[0-9a-z-]{2,3}\.[0-9a-z-]{2,3}|[0-9a-z-]{2,}\.[0-9a-z-]{2,4})$', domain_IP_input_unblock)
 
-    
+    print(sanitized_word_output_unblock_domain)
     if sanitized_word_output_unblock_domain!=None:
-        if str(message.author.id) in redis_connect.hget("permissions", "mod") or redis_connect.hget("permissions", "admin"):
+        if str(message.author.id) in redis_connect.hget("permissions", "mod") + redis_connect.hget("permissions", "admin"):
             if sanitized_word_output_unblock_domain.group() not in redis_connect.hget("blacklist", "domain"):
                 await message.channel.send("That domain is not blocked :warning:")
             else:
@@ -1046,7 +1053,7 @@ async def unblock (message, domain_IP_input_unblock):
         
 
     elif sanitized_word_output_unblock_ip!=None:
-        if str(message.author.id) in redis_connect.hget("permissions", "mod") or redis_connect.hget("permissions", "admin"):
+        if str(message.author.id) in redis_connect.hget("permissions", "mod") + redis_connect.hget("permissions", "admin"):
             if sanitized_word_output_unblock_ip.group() not in redis_connect.hget("blacklist", "ip"):
                 await message.channel.send("That IP is not blocked :warning:")
             else:
@@ -1080,7 +1087,18 @@ async def unblock (message, domain_IP_input_unblock):
     logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
 
+@bot.command()
+async def announcement(message, *, announcement_input):
 
+    if str(message.author.id) in redis_connect.hget("permissions", "mod") + redis_connect.hget("permissions", "admin"):
+        print(announcement_input)
+        redis_connect.set("announcement", "```" + str(announcement_input) + "```")
+        await message.channel.send("I have saved your announcement, your new announcement is " + "```" + announcement_input + "```")  
+    elif str(message.author.id) not in redis_connect.hget("permissions", "mod") + redis_connect.hget("permissions", "admin"):
+        await message.channel.send(":red_circle: **You do not have permission!**")
+
+    
+    #sanitized_word_output_dnsenum_domain.group() in redis_connect.hget("blacklist", "domain")
 
 admin_input = input("What bot do you want to run the script on: \n(1) - Main bot\n(2) - Test bot\n")
 if admin_input == "1":

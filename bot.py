@@ -56,8 +56,6 @@ def uptime():
 
     return string;
 
-
-print(redis_connect.("testkey", 1, "test"))
 # #load config
 # if not os.path.isfile("config.json"):
 #     sys.exit("'config.json' not found!.")

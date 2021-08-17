@@ -688,7 +688,7 @@ async def usersearch(message, *, user_input):
     #sanitize
     user_sanitize = str(user_input).replace(" ", "-")
     
-    usersearch_output = os.popen("python3 sherlock/sherlock/sherlock.py " + user_sanitize)
+    usersearch_output = os.popen("python3 sherlock/sherlock/sherlock.py " + user_sanitize + " --timeout 5")
     
     await message.channel.send("Hey! just a heads up this command may take some time to complete so please be patient.")
     

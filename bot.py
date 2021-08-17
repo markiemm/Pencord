@@ -57,7 +57,7 @@ def uptime():
     return string;
 
 
-
+print(redis_connect.("testkey", 1, "test"))
 # #load config
 # if not os.path.isfile("config.json"):
 #     sys.exit("'config.json' not found!.")
@@ -690,7 +690,7 @@ async def usersearch(message, *, user_input):
     #sanitize
     user_sanitize = str(user_input).replace(" ", "-")
     
-    usersearch_output = os.popen("python3 /sherlock/sherlock/sherlock.py " + user_sanitize)
+    usersearch_output = os.popen("python3 sherlock/sherlock/sherlock.py " + user_sanitize)
     
     await message.channel.send("Hey! just a heads up this command may take some time to complete so please be patient.")
     

@@ -14,6 +14,7 @@ from discord import channel
 from discord.ext.commands.core import group
 from discord.member import flatten_user
 from discord.utils import valid_icon_size
+import faker
 import requests
 from discord.ext import commands, tasks
 import re
@@ -23,6 +24,8 @@ from discord.ext.commands import Bot
 import timeit
 import redis
 from modules.password_analyzer import Analyze
+from faker import Faker
+
 
 #redis database
 
@@ -100,7 +103,7 @@ async def help (message):
     embed=discord.Embed(title="How to use Pencord Discord bot", description="All the commands", color=0x0088ff)
     embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
     embed.add_field(name="Website discovering", value=redis_connect.hget("bot config", "Bot_prefix") + "**whois** - Display whois data for a domain or IP.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**domainlist** - Display related domains about the target domain.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**webping** - Ping a website.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**wpscan** - Scans a wordpress site and tells you details about it.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**dns** - Displays the DNS records and its IP's.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**cloudflare** - Tries and get the server IP that's behind a Cloudflare proxy.\n", inline=False)
-    embed.add_field(name="Miscellaneous", value=redis_connect.hget("bot config", "Bot_prefix") + "**usersearch** - Search the interwebs for valid target usernames.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**bincheck** - Display the status of a Bank Identification Number.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**face** - Generate a fake face.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**bincheck** - Display the status of a Bank Identification Number.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**password** - Test the strength of a password.\n", inline=False)
+    embed.add_field(name="Miscellaneous", value=redis_connect.hget("bot config", "Bot_prefix") + "**usersearch** - Search the interwebs for valid target usernames.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**bincheck** - Display the status of a Bank Identification Number.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**face** - Generate a fake face.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**bincheck** - Display the status of a Bank Identification Number.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**password** - Test the strength of a password.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**fakeinfo** - Generate fake info.\n", inline=False)
     embed.add_field(name="Pencord default commands", value=redis_connect.hget("bot config", "Bot_prefix") + "**help** - Display all of the commands and what they do.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**ping** - Test the Discord API connection\n" + redis_connect.hget("bot config", "Bot_prefix") + "**changelog** - View the changelog of Pencord.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**status** - View the status of Pencord.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**credits** - View the projects that made Pencord possible.\n", inline=False)
     embed.set_footer(text=redis_connect.hget("embed template", "footer"))
     await message.channel.send(embed=embed)
@@ -236,6 +239,7 @@ async def changelog (message):
     embed=discord.Embed(title="Changelog (Bot version: " + "V" + redis_connect.hget("bot config", "Version") + ")", color=0x0088ff)
     embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
     embed.set_thumbnail(url="https://img.icons8.com/plasticine/100/000000/approve-and-update.png")
+    embed.add_field(name="V2.7.2", value="- Added a fake info generator\n - fixed minor bugs", inline=False)
     embed.add_field(name="V2.6.2", value="- Added a face generator\n - fixed minor bugs", inline=False)
     embed.add_field(name="V2.5.2", value="- fixed minor bugs", inline=False)
     embed.add_field(name="V2.5.0", value="- More bug fixes.\n - Added credits command.", inline=False)
@@ -962,6 +966,36 @@ async def face(message):
     logoutput.add_field(name="User", value=str(message.author), inline=True)
     logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
     logoutput.add_field(name="User Input", value="face", inline=True)
+    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
+    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
+    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
+    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
+    await channel.send(embed=logoutput)
+
+@bot.command()
+async def fakeinfo(message):
+    fake = Faker()
+    embed=discord.Embed(title="Fake info", color=0x83ff61)
+    embed.add_field(name=fake.name(), value=fake.address(), inline=False)
+    embed.add_field(name="Birthday", value=f"{random.randint(1940, 2007)}-{random.randint(1, 12)}-{random.randint(1, 30)}", inline=True)
+    embed.add_field(name="SSN", value=fake.ssn(), inline=True)
+    embed.add_field(name="Phone", value="Phone: " + str(fake.phone_number()).split("x")[0] + "\nCountry Code : " + fake.country_calling_code(), inline=True)
+    embed.add_field(name="Online", value="**Email:** " + fake.email() + "\n**Username:** " + fake.profile()["username"] + "\n**Password:** " + str(fake.password()) + "\n**Website:** " + str(fake.profile()["website"][0]) + "\n**Browser user Agent:** " + str(fake.user_agent()), inline=False)
+    embed.add_field(name="Finance", value=fake.credit_card_full(), inline=False)
+    embed.add_field(name="Employment", value="**Company:** " + fake.company() + "\n**Company Email:** " + fake.company_email() + "\n**Company suffix:** " + fake.company_suffix(), inline=False)
+    embed.add_field(name="Technology", value="**IPv4:** " + fake.ipv4() + " (Private: " + fake.ipv4_private() + ")" + "\n**IPv6:** " + fake.ipv6() + "\n**Mac address:** " + fake.mac_address() + "\n**Linux processor:** " + fake.linux_processor() + "\n**Mac Processor:** " + fake.mac_processor() + "\n**Linux platform token:** " + fake.linux_platform_token() + "\n**Mac platform token:** " + fake.mac_platform_token(), inline=False)
+    embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
+    embed.set_footer(text=redis_connect.hget("embed template", "footer"))
+    await message.channel.send(embed=embed)
+
+    channel = bot.get_channel(864566639323906078)
+    logoutput=discord.Embed(title=str(message.author.name) + " used the ?fakeinfo command!", color=0x83ff61)
+    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
+    logoutput.set_thumbnail(url=str(message.author.avatar_url))
+    logoutput.add_field(name="Command", value="?fakeinfo", inline=False)
+    logoutput.add_field(name="User", value=str(message.author), inline=True)
+    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
+    logoutput.add_field(name="User Input", value=str(message), inline=True)
     logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
     logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
     logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)

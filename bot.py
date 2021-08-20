@@ -1087,7 +1087,7 @@ async def unblock (message, domain_IP_input_unblock):
     #get channel id
     channel_id_unblock = message.channel.id
 
-    sanitized_word_output_unblock_ip = re.match("^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$",domain_IP_input_unblock)
+    sanitized_word_output_unblock_ip = re.match("^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$", domain_IP_input_unblock)
 
     sanitized_word_output_unblock_domain = re.match('([0-9a-z-]{2,}\.[0-9a-z-]{2,3}\.[0-9a-z-]{2,3}|[0-9a-z-]{2,}\.[0-9a-z-]{2,4})$', domain_IP_input_unblock)
 

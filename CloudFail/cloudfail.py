@@ -170,13 +170,8 @@ def check_for_wildcard(target):
         #Throws exception if none found
         answer = resolver.query('*.' + target)
         #If found, ask user if continue as long until valid answer
-        choice = ''
-        while choice is not 'y' and choice is not 'n':
-            choice = input("A wildcard DNS entry was found. This will result in all subdomains returning an IP. Do you want to scan subdomains anyway? (y/n): ")
-        if choice is 'y':
-            return False
-        else:
-            return False
+        choice = 'n'
+        return False
     except:
         #Return False to not return if no wildcard was found
         return False

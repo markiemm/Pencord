@@ -163,18 +163,8 @@ def inCloudFlare(ip):
         return False
 
 def check_for_wildcard(target):
-    resolver = dns.resolver.Resolver(configure=False)
-    resolver.nameservers = ['1.1.1.1', '1.0.0.1']
-    #Unsure how exactly I should test, for now simple appending to target. Don't know how to extract only domain to append *. for wildcard test
-    try:
-        #Throws exception if none found
-        answer = resolver.query('*.' + target)
-        #If found, ask user if continue as long until valid answer
-        choice = 'n'
-        return False
-    except:
-        #Return False to not return if no wildcard was found
-        return False
+    
+    return False
 
 def subdomain_scan(target, subdomains):
     i = 0

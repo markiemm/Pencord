@@ -102,7 +102,7 @@ please_wait.set_footer(text=redis_connect.hget("embed template", "footer"))
 async def help (message):
     embed=discord.Embed(title="How to use Pencord Discord bot", description="All the commands", color=0x0088ff)
     embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
-    embed.add_field(name="Website discovering", value=redis_connect.hget("bot config", "Bot_prefix") + "**whois** - Display whois data for a domain or IP.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**domainlist** - Display related domains about the target domain.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**webping** - Ping a website.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**wpscan** - Scans a wordpress site and tells you details about it.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**dns** - Displays the DNS records and its IP's.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**cloudflare** - Tries and get the server IP that's behind a Cloudflare proxy.\n", inline=False)
+    embed.add_field(name="Website discovering", value=redis_connect.hget("bot config", "Bot_prefix") + "**whois** - Display whois data for a domain or IP.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**domainlist** - Display related domains about the target domain.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**webping** - Ping a website.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**wpscan** - Scans a wordpress site and tells you details about it.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**dns** - Displays the DNS records and its IP's.\n", inline=False)
     embed.add_field(name="Miscellaneous", value=redis_connect.hget("bot config", "Bot_prefix") + "**usersearch** - Search the interwebs for valid target usernames.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**bincheck** - Display the status of a Bank Identification Number.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**face** - Generate a fake face.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**bincheck** - Display the status of a Bank Identification Number.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**password** - Test the strength of a password.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**fakeinfo** - Generate fake info.\n", inline=False)
     embed.add_field(name="Pencord default commands", value=redis_connect.hget("bot config", "Bot_prefix") + "**help** - Display all of the commands and what they do.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**ping** - Test the Discord API connection\n" + redis_connect.hget("bot config", "Bot_prefix") + "**changelog** - View the changelog of Pencord.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**status** - View the status of Pencord.\n" + redis_connect.hget("bot config", "Bot_prefix") + "**credits** - View the projects that made Pencord possible.\n", inline=False)
     embed.set_footer(text=redis_connect.hget("embed template", "footer"))
@@ -819,100 +819,6 @@ async def wpscan(message, wpscan_input, wpscan_argument=""):
     logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
     await channel.send(embed=logoutput)
 
-@bot.command(aliases=['cf'])
-async def cloudflare(message, cloudflare_input):
-
-    #send "please wait message"
-    please_wait_message = await message.channel.send(embed=please_wait)
-
-    #get message id
-    message_id_cloudflare = please_wait_message.id
-
-    #get channel id
-    channel_id_cloudflare = message.channel.id
-
-    user_input_sanitize_domain = re.search('([0-9a-z-]{2,}\.[0-9a-z-]{2,3}\.[0-9a-z-]{2,3}|[0-9a-z-]{2,}\.[0-9a-z-]{2,7})$', cloudflare_input)
-    user_input_sanitize_IP = re.search('^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$', cloudflare_input)
-
-
-        #checks to see if the domain is in the blacklist
-    if user_input_sanitize_domain!=None:    
-        if user_input_sanitize_domain.group() in redis_connect.hget("blacklist", "domain"):
-            embed=discord.Embed(title="Sorry, " + user_input_sanitize_domain.group() + " is blacklisted from Pencord.", color=0xf40101)
-            embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
-            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-            embed.set_footer(text=redis_connect.hget("embed template", "footer"))
-            await message.channel.send(embed=embed)
-            await bot.http.delete_message(channel_id_cloudflare, message_id_cloudflare)
-            channel = bot.get_channel(864566639323906078)
-            logoutput=discord.Embed(title=str(message.author.name) + " used the ?cloudflare command on a blacklisted domain!", color=0xf40101)
-            logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
-            logoutput.set_thumbnail(url=str(message.author.avatar_url))
-            logoutput.add_field(name="Command", value="?cloudflare", inline=False)
-            logoutput.add_field(name="User", value=str(message.author), inline=True)
-            logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
-            logoutput.add_field(name="User Input", value=str(cloudflare_input), inline=True)
-            logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
-            logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
-            logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
-            logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
-            await channel.send(embed=logoutput)
-            return
-
-    if user_input_sanitize_IP!=None:
-        if user_input_sanitize_IP.group() in redis_connect.hget("blacklist", "ip"):
-            embed=discord.Embed(title="Sorry, " + user_input_sanitize_IP.group() + " is blacklisted from Pencord.", color=0xf40101)
-            embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
-            embed.set_thumbnail(url="https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png")
-            embed.set_footer(text=redis_connect.hget("embed template", "footer"))
-            await message.channel.send(embed=embed)
-            await bot.http.delete_message(channel_id_cloudflare, message_id_cloudflare)
-            channel = bot.get_channel(864566639323906078)
-            logoutput=discord.Embed(title=str(message.author.name) + " used the ?cloudflare command on a blacklisted IP!", color=0xf40101)
-            logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
-            logoutput.set_thumbnail(url=str(message.author.avatar_url))
-            logoutput.add_field(name="Command", value="?webping", inline=False)
-            logoutput.add_field(name="User", value=str(message.author), inline=True)
-            logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
-            logoutput.add_field(name="User Input", value=str(cloudflare_input), inline=True)
-            logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
-            logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
-            logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
-            logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
-            await channel.send(embed=logoutput)
-            return
-    #-----------------------------------------------
-
-    if user_input_sanitize_IP!=None:
-        embed=discord.Embed(title="Oops", description="please enter a website domain.", color=0xf40101)
-        embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
-        embed.set_footer(text=redis_connect.hget("embed template", "footer"))
-        await message.send(embed=embed)
-
-    elif user_input_sanitize_domain!=None:
-        cloudflare_output = os.popen("python3 CloudFail/cloudfail.py -t " + user_input_sanitize_domain.group())
-
-        embed=discord.Embed(title="Cloudflare scan for " + user_input_sanitize_domain.group(), description=cloudflare_output.read()[:4096], color=0x83ff61)
-        embed.set_author(name=redis_connect.hget("embed template", "author"), icon_url=redis_connect.hget("embed template", "icon_url"))
-        embed.set_footer(text=redis_connect.hget("embed template", "footer"))
-        await message.send(embed=embed)
-    
-
-    await bot.http.delete_message(channel_id_cloudflare, message_id_cloudflare)
-
-    channel = bot.get_channel(864566639323906078)
-    logoutput=discord.Embed(title=str(message.author.name) + " used the ?wpscan command!", color=0x83ff61)
-    logoutput.set_author(name=message.author.name, icon_url=str(message.author.avatar_url))
-    logoutput.set_thumbnail(url=str(message.author.avatar_url))
-    logoutput.add_field(name="Command", value="?wpscan", inline=False)
-    logoutput.add_field(name="User", value=str(message.author), inline=True)
-    logoutput.add_field(name="User ID", value=str(message.author.id), inline=True)
-    logoutput.add_field(name="User Input", value=str(cloudflare_input), inline=True)
-    logoutput.add_field(name="Server name", value=str(message.guild), inline=False)
-    logoutput.add_field(name="Server ID", value=str(message.guild.id), inline=False)
-    logoutput.add_field(name="Channel Name", value=str(message.channel), inline=False)
-    logoutput.add_field(name="Channel ID", value=str(message.channel.id), inline=False)
-    await channel.send(embed=logoutput)
     
 @bot.command(aliases=['c'])
 async def credits(message):

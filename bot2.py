@@ -3,13 +3,13 @@ from config import BOT_PREFIX, VERSION, BOT_TOKEN, TEST_BOT_TOKEN, PRESENCE
 import discord
 import platform
 import os
+import whois
 
 
 
 
 bot = commands.Bot(command_prefix=BOT_PREFIX)
 bot.remove_command("help")
-
 
 
 for filename in os.listdir('./modules'):

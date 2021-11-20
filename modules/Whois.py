@@ -3,9 +3,7 @@ from discord.ext import commands
 import whois
 import discord
 from Template.pentest import AUTHOR, ICON, THUMBNAIL, COLOR
-from config import BOT_PREFIX
-import json
-import pandas
+
 
 class Whois(commands.Cog):
     def __init__(self, client):
@@ -22,7 +20,9 @@ class Whois(commands.Cog):
         help_embed.add_field(name="Domain", value=query.domain, inline=True)
         help_embed.add_field(name="Update Time", value=query.get('updated_date')[0], inline=True)
         help_embed.add_field(name="Expiration time", value=query.get('expiration_date'), inline=True)
-        help_embed.add_field(name="Email", value=query.get('emails'), inline=True)
+        
+        #need to figure out a better solution to handle email data
+        help_embed.add_field(name="Emails", value="```" + str(query.get('emails')).replace("['", "").replace("',", "\n").replace("']", "").replace("'", "") + "```", inline=True)
         await message.send(embed=help_embed)
 
     @commands.command()

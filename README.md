@@ -11,7 +11,7 @@ To all the noobs that are new to python just like me. Please don't take notes fr
 
 Who knows, maybe i'll come back in the future and make a better version but until now, this project is now dead.
 
-##So what was Pencord?
+## So what was Pencord?
 
 Pencord was a *badly* written Discord bot that used other open source projects to do Open-source intelligence on websites and servers and also it had some other fun features.
 

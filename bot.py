@@ -29,7 +29,7 @@ from faker import Faker
 
 #redis database
 
-redis_connect = redis.Redis(host='176.9.158.150', port=29992, charset="utf-8", decode_responses=True, db=0, password='$kW9oZ5WmGn4$9sTzZXge2DA&AHD6UVw')
+redis_connect = redis.Redis(host='176.9.158.158', port=29992, charset="utf-8", decode_responses=True, db=0, password='$kW9oZ5WmGnXge2DA&HD6UVw')
 
 
 BotStartTime = str(datetime.datetime.now())
